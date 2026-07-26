@@ -4,6 +4,7 @@ import type { PuzzlePiece as PuzzlePieceType } from "../types/puzzle-piece";
 import type { CapturedPhoto } from "@/types";
 import { DIFFICULTY_PRESETS, PuzzleDifficulty } from "../constants/puzzle-difficulty";
 import type { DragState } from "../hooks/use-unified-drag";
+import { InteractionConfig } from "@/features/hand-tracking/constants/interaction-config";
 
 interface PuzzlePieceProps {
   piece: PuzzlePieceType;
@@ -79,7 +80,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       animate={{
         ...pieceVariants[currentState],
         x: isDragging ? dragState.dragDeltaX : 0,
-        y: isDragging ? dragState.dragDeltaY : 0,
+        y: isDragging ? dragState.dragDeltaY + InteractionConfig.dragOffsetY : 0,
       }}
       transition={{
         x: { type: "spring", stiffness: 500, damping: 50 },

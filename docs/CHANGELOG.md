@@ -4,6 +4,15 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.6.1] - Hand Tracking Interaction Refinement
+- Abstracted tracking and visual variables into a dedicated `InteractionConfig`.
+- Added Tracking Persistence (`180ms`) in `HandTrackingProvider` to prevent single-frame flickering when tracking is briefly lost.
+- Upgraded `GestureRecognizer` to use Pinch Hysteresis for maximum grab stability, completely eliminating rapid pinch/unpinch oscillation.
+- Introduced Temporary Grab Persistence (`200ms`) inside `GestureRecognizer` to survive short occlusions while dragging pieces.
+- Expanded the effective hover detection margin in `PuzzleBoard` to `48px`, making hover-locking significantly more forgiving.
+- Enhanced `PointerOverlay` with smoother animation curves, dynamic cursor sizing (`24px`, `34px`, `40px`), and a stronger `75%` magnetic pull.
+- Offloaded the visually dragged piece via a `+30px` Y-axis offset so the user's hand/finger does not occlude the piece they are dragging.
+
 ## [Sprint 5.6] - Gesture Recognition & Hand-Controlled Interaction
 - Developed a decoupled `GestureRecognizer` interpreting AI hand landmarks into stable, debounced pinch and hover events.
 - Refactored `PuzzleBoard` and `PuzzlePiece` with a newly created `useUnifiedDrag` hook, establishing a unified input pipeline where synthetic AI gestures and native mouse events seamlessly coexist.

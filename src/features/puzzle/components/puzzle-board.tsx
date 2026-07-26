@@ -7,6 +7,7 @@ import { usePuzzleStore } from "@/store/puzzle-store";
 import { motion } from "motion/react";
 import { useUnifiedDrag } from "../hooks/use-unified-drag";
 import { useHandTracking } from "@/features/hand-tracking/providers/hand-tracking-provider";
+import { InteractionConfig } from "@/features/hand-tracking/constants/interaction-config";
 
 interface PuzzleBoardProps {
   pieces: PuzzlePieceType[];
@@ -55,15 +56,40 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
       feedSyntheticEvent,
       {
         hitTest: (x, y) => {
-          const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
-          const col = Math.floor(x * columns);
-          const row = Math.floor(y * rows);
-          const safeCol = Math.max(0, Math.min(col, columns - 1));
-          const safeRow = Math.max(0, Math.min(row, rows - 1));
-          const targetSlotIndex = safeRow * columns + safeCol;
+          if (!boardRef.current) return undefined;
           
-          const piece = pieces.find(p => p.currentSlotIndex === targetSlotIndex);
-          return piece?.isLocked ? undefined : piece?.id;
+          const rect = boardRef.current.getBoundingClientRect();
+          const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
+          const slotWidth = rect.width / columns;
+          const slotHeight = rect.height / rows;
+          
+          const px = x * rect.width;
+          const py = y * rect.height;
+
+          let closestPieceId: string | undefined = undefined;
+          let minDistance = Infinity;
+
+          for (const piece of pieces) {
+            if (piece.isLocked) continue;
+
+            const col = piece.currentSlotIndex % columns;
+            const row = Math.floor(piece.currentSlotIndex / columns);
+            
+            const pieceCenterX = (col + 0.5) * slotWidth;
+            const pieceCenterY = (row + 0.5) * slotHeight;
+
+            // Distance to edge
+            const dx = Math.max(0, Math.abs(px - pieceCenterX) - slotWidth / 2);
+            const dy = Math.max(0, Math.abs(py - pieceCenterY) - slotHeight / 2);
+            const distanceToEdge = Math.sqrt(dx * dx + dy * dy);
+
+            if (distanceToEdge <= InteractionConfig.hoverRadius && distanceToEdge < minDistance) {
+              minDistance = distanceToEdge;
+              closestPieceId = piece.id;
+            }
+          }
+          
+          return closestPieceId;
         }
       }
     );

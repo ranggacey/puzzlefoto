@@ -1,5 +1,6 @@
 import type { HandState } from "../types/hand-state";
 import type { GestureState, HitTester, NormalizedPointerEvent } from "../types/gesture-state";
+import { InteractionConfig } from "../constants/interaction-config";
 
 type EventCallback = (event: NormalizedPointerEvent) => void;
 
@@ -13,8 +14,8 @@ export class GestureRecognizer {
   private pinchStartTime = 0;
   private pinchEndTime = 0;
   private isPhysicallyPinching = false;
-  private PINCH_THRESHOLD = 0.08; // Normalized distance threshold
-  private DEBOUNCE_MS = 60; // 60ms debounce for stability
+  private trackingLostTime = 0;
+  private lastPointer = { x: 0, y: 0 };
 
   private onEvent?: EventCallback;
   private hitTester?: HitTester;
@@ -27,14 +28,25 @@ export class GestureRecognizer {
   process(handState: HandState, timestamp: number): GestureState {
     if (!handState.detected || handState.landmarks.length < 9) {
       if (this.state.pinching) {
-        this.emit("pointerUp", handState.pointer.x, handState.pointer.y);
+        if (this.trackingLostTime === 0) {
+          this.trackingLostTime = timestamp;
+        } else if (timestamp - this.trackingLostTime > InteractionConfig.dragPersistenceMs) {
+          this.emit("pointerUp", this.lastPointer.x, this.lastPointer.y, this.state.hoveredPieceId);
+          this.state = { hovering: false, pinching: false, phase: "idle" };
+          this.isPhysicallyPinching = false;
+        }
+      } else {
+        this.state = { hovering: false, pinching: false, phase: "idle" };
+        this.isPhysicallyPinching = false;
+        this.trackingLostTime = 0;
       }
-      this.state = { hovering: false, pinching: false, phase: "idle" };
-      this.isPhysicallyPinching = false;
       return this.state;
     }
 
+    this.trackingLostTime = 0;
     const pointer = handState.pointer;
+    this.lastPointer = pointer;
+    
     const hoveredPieceId = this.hitTester?.hitTest(pointer.x, pointer.y);
     const hovering = !!hoveredPieceId;
 
@@ -45,26 +57,29 @@ export class GestureRecognizer {
     const dy = thumb.y - index.y;
     // Normalized distance
     const distance = Math.sqrt(dx * dx + dy * dy);
-    const currentPhysicalPinch = distance < this.PINCH_THRESHOLD;
-
-    if (currentPhysicalPinch && !this.isPhysicallyPinching) {
+    
+    // Pinch Hysteresis
+    if (!this.isPhysicallyPinching && distance < InteractionConfig.pinchStartDistance) {
       this.pinchStartTime = timestamp;
       this.isPhysicallyPinching = true;
-    } else if (!currentPhysicalPinch && this.isPhysicallyPinching) {
+    } else if (this.isPhysicallyPinching && distance > InteractionConfig.pinchEndDistance) {
       this.pinchEndTime = timestamp;
       this.isPhysicallyPinching = false;
     }
 
     let { phase, pinching } = this.state;
 
+    // We still use 60ms hardcoded debounce for the physical start/end transition stability
+    const DEBOUNCE_MS = 60;
+
     if (this.isPhysicallyPinching && !pinching) {
-      if (timestamp - this.pinchStartTime >= this.DEBOUNCE_MS) {
+      if (timestamp - this.pinchStartTime >= DEBOUNCE_MS) {
         pinching = true;
         phase = "pinch-start";
         this.emit("pointerDown", pointer.x, pointer.y, hoveredPieceId);
       }
     } else if (!this.isPhysicallyPinching && pinching) {
-      if (timestamp - this.pinchEndTime >= this.DEBOUNCE_MS) {
+      if (timestamp - this.pinchEndTime >= DEBOUNCE_MS) {
         pinching = false;
         phase = "pinch-end";
         this.emit("pointerUp", pointer.x, pointer.y, hoveredPieceId);

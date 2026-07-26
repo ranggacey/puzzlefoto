@@ -5,6 +5,7 @@ import { usePuzzleCameraContext } from "@/features/puzzle/providers/puzzle-camer
 import { handTrackingService } from "../services/hand-tracking-service";
 import { PointerSmoothing } from "../services/pointer-smoothing";
 import { GestureRecognizer } from "../services/gesture-recognizer";
+import { InteractionConfig } from "../constants/interaction-config";
 import type { HandState } from "../types/hand-state";
 import type { GestureState, HitTester, NormalizedPointerEvent } from "../types/gesture-state";
 
@@ -41,6 +42,8 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
   const animationFrameRef = useRef<number | null>(null);
   const pointerSmoothing = useRef(new PointerSmoothing(0.3));
   const gestureRecognizer = useRef(new GestureRecognizer());
+  const lastDetectedTime = useRef<number>(0);
+  const lastValidState = useRef<HandState | null>(null);
 
   const registerGestureCallbacks = React.useCallback((
     onEvent: (e: NormalizedPointerEvent) => void,
@@ -109,8 +112,11 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
             landmarks,
             handedness,
             confidence,
-            pinch: false, // Legacy field
+            pinch: false,
           };
+          
+          lastDetectedTime.current = performance.now();
+          lastValidState.current = newState;
           
           setHandState(newState);
 
@@ -118,12 +124,23 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
           const gState = gestureRecognizer.current.process(newState, performance.now());
           setGestureState(gState);
         } else {
-          // No hand detected
-          pointerSmoothing.current.reset();
-          const emptyState = { ...initialHandState, detected: false };
-          setHandState(emptyState);
-          const gState = gestureRecognizer.current.process(emptyState, performance.now());
-          setGestureState(gState);
+          // Tracking lost - check persistence
+          const timeSinceLastDetection = performance.now() - lastDetectedTime.current;
+          
+          if (lastValidState.current && timeSinceLastDetection < InteractionConfig.trackingPersistenceMs) {
+            // Keep the last valid state and feed it to gesture recognizer to allow it to apply its own grab persistence
+            setHandState(lastValidState.current);
+            const gState = gestureRecognizer.current.process(lastValidState.current, performance.now());
+            setGestureState(gState);
+          } else {
+            // Persistence expired, actually lose tracking
+            pointerSmoothing.current.reset();
+            const emptyState = { ...initialHandState, detected: false };
+            lastValidState.current = null;
+            setHandState(emptyState);
+            const gState = gestureRecognizer.current.process(emptyState, performance.now());
+            setGestureState(gState);
+          }
         }
       }
       
