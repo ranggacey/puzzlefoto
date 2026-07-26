@@ -23,53 +23,42 @@ export class PuzzleGenerator {
 
     const config = DIFFICULTY_PRESETS[difficulty];
     const { rows, columns } = config;
-    
-    const pieceWidth = sourceImage.width / columns;
-    const pieceHeight = sourceImage.height / rows;
 
     const pieces: PuzzlePiece[] = [];
 
-    // 1. Generate pieces in their correct positions
+    // 1. Generate pieces in their correct slots
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < columns; col++) {
+        const index = row * columns + col;
         pieces.push({
           id: `${row}-${col}`,
           sourceImageId: sourceImage.id,
-          row,
-          col,
-          sourceRect: {
-            x: col * pieceWidth,
-            y: row * pieceHeight,
-            width: pieceWidth,
-            height: pieceHeight,
-          },
-          correctPosition: {
-            x: col * pieceWidth,
-            y: row * pieceHeight,
-          },
-          // Position will be randomized shortly
-          position: { x: 0, y: 0 },
-          width: pieceWidth,
-          height: pieceHeight,
+          correctSlotIndex: index,
+          currentSlotIndex: index,
+          sourceRow: row,
+          sourceCol: col,
           isLocked: false,
         });
       }
     }
 
-    // 2. Shuffle positions deterministically
-    // We shuffle the correct positions and assign them to `position`
-    const availablePositions = pieces.map(p => ({ ...p.correctPosition }));
+    // 2. Shuffle slots deterministically
+    const availableSlots = pieces.map(p => p.correctSlotIndex);
     
     // Fisher-Yates shuffle using the injected random source
-    for (let i = availablePositions.length - 1; i > 0; i--) {
+    for (let i = availableSlots.length - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
-      [availablePositions[i], availablePositions[j]] = [availablePositions[j], availablePositions[i]];
+      [availableSlots[i], availableSlots[j]] = [availableSlots[j], availableSlots[i]];
     }
 
-    // 3. Assign randomized positions
-    return pieces.map((piece, index) => ({
-      ...piece,
-      position: availablePositions[index],
-    }));
+    // 3. Assign randomized slots and lock if accidentally correct
+    return pieces.map((piece, i) => {
+      const currentSlotIndex = availableSlots[i];
+      return {
+        ...piece,
+        currentSlotIndex,
+        isLocked: currentSlotIndex === piece.correctSlotIndex,
+      };
+    });
   }
 }

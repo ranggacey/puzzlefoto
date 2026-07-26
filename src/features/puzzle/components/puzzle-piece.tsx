@@ -3,31 +3,38 @@ import { motion } from "motion/react";
 import type { PuzzlePiece as PuzzlePieceType } from "../types/puzzle-piece";
 import type { CapturedPhoto } from "@/types";
 import { DIFFICULTY_PRESETS, PuzzleDifficulty } from "../constants/puzzle-difficulty";
+import type { PanInfo } from "motion/react";
 
 interface PuzzlePieceProps {
   piece: PuzzlePieceType;
   sourceImage: CapturedPhoto;
   difficulty: PuzzleDifficulty;
+  dragConstraints?: React.RefObject<Element | null>;
+  onPieceDragEnd?: (pieceId: string, info: PanInfo) => void;
 }
 
 export const PuzzlePiece = React.memo(function PuzzlePiece({ 
   piece, 
   sourceImage,
-  difficulty
+  difficulty,
+  dragConstraints,
+  onPieceDragEnd,
 }: PuzzlePieceProps) {
   const { rows, columns } = DIFFICULTY_PRESETS[difficulty];
 
-  // We use percentages so the puzzle automatically scales with the board container.
   const widthPercent = 100 / columns;
   const heightPercent = 100 / rows;
 
-  const leftPercent = (piece.position.x / sourceImage.width) * 100;
-  const topPercent = (piece.position.y / sourceImage.height) * 100;
+  // Calculate current slot position
+  const currentCol = piece.currentSlotIndex % columns;
+  const currentRow = Math.floor(piece.currentSlotIndex / columns);
 
-  // Background position for CSS sprites based on percentages.
-  // CSS percentage background-position works such that 0% is start, 100% is end.
-  const bgPosX = columns > 1 ? (piece.col / (columns - 1)) * 100 : 0;
-  const bgPosY = rows > 1 ? (piece.row / (rows - 1)) * 100 : 0;
+  const leftPercent = currentCol * widthPercent;
+  const topPercent = currentRow * heightPercent;
+
+  // Background position from original source crop
+  const bgPosX = columns > 1 ? (piece.sourceCol / (columns - 1)) * 100 : 0;
+  const bgPosY = rows > 1 ? (piece.sourceRow / (rows - 1)) * 100 : 0;
   
   const bgSizeX = columns * 100;
   const bgSizeY = rows * 100;
@@ -53,7 +60,8 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
     },
   };
 
-  const currentState = piece.isLocked ? "locked" : "idle"; // active will be used in dragging
+  const [isDragging, setIsDragging] = React.useState(false);
+  const currentState = piece.isLocked ? "locked" : isDragging ? "active" : "idle";
 
   return (
     <motion.div
@@ -61,7 +69,18 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       variants={pieceVariants}
       initial={false}
       animate={currentState}
-      className="absolute overflow-hidden border border-white/20 rounded-sm"
+      drag={!piece.isLocked}
+      dragConstraints={dragConstraints}
+      dragElastic={0}
+      dragMomentum={false}
+      onDragStart={() => setIsDragging(true)}
+      onDragEnd={(e, info) => {
+        setIsDragging(false);
+        if (onPieceDragEnd) {
+          onPieceDragEnd(piece.id, info);
+        }
+      }}
+      className={`absolute overflow-hidden border border-white/20 rounded-sm ${!piece.isLocked ? "cursor-grab active:cursor-grabbing" : ""}`}
       style={{
         width: `${widthPercent}%`,
         height: `${heightPercent}%`,
@@ -71,6 +90,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
         backgroundSize: `${bgSizeX}% ${bgSizeY}%`,
         backgroundPosition: `${bgPosX}% ${bgPosY}%`,
         backgroundRepeat: "no-repeat",
+        touchAction: "none", // Prevent scrolling while dragging on mobile
       }}
     />
   );

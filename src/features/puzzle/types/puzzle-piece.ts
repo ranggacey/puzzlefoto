@@ -1,23 +1,18 @@
+export interface PuzzleSlot {
+  index: number;
+  row: number;
+  col: number;
+}
+
 export interface PuzzlePiece {
   id: string;
   sourceImageId: string;
-  row: number;
-  col: number;
-  sourceRect: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
-  correctPosition: {
-    x: number;
-    y: number;
-  };
-  position: {
-    x: number;
-    y: number;
-  };
-  width: number;
-  height: number;
+  
+  correctSlotIndex: number;
+  currentSlotIndex: number;
+  
+  sourceRow: number;
+  sourceCol: number;
+  
   isLocked: boolean;
 }

@@ -11,7 +11,8 @@ export type PuzzleScene =
   | "floating"
   | "calibration"
   | "difficulty-selection"
-  | "gameplay";
+  | "gameplay"
+  | "completed";
 
 // ============================================================
 // Puzzle Store
@@ -51,6 +52,7 @@ interface PuzzleState {
   setTimerRunning: (running: boolean) => void;
   setGenerationState: (state: LoadingState) => void;
   generatePuzzle: (sourceImage: CapturedPhoto) => void;
+  movePieceToSlot: (pieceId: string, targetSlotIndex: number) => void;
   reset: () => void;
 }
 
@@ -90,6 +92,43 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     } catch (err) {
       console.error("Failed to generate puzzle:", err);
       set({ generationState: "error" });
+    }
+  },
+
+  movePieceToSlot: (pieceId: string, targetSlotIndex: number) => {
+    const state = get();
+    const sourcePiece = state.pieces.find(p => p.id === pieceId);
+    if (!sourcePiece || sourcePiece.isLocked) return;
+
+    const sourceSlotIndex = sourcePiece.currentSlotIndex;
+    if (sourceSlotIndex === targetSlotIndex) return;
+
+    const targetPiece = state.pieces.find(p => p.currentSlotIndex === targetSlotIndex);
+    if (targetPiece?.isLocked) return;
+
+    const newPieces = state.pieces.map(piece => {
+      const updatedPiece = { ...piece };
+      
+      if (piece.id === pieceId) {
+        updatedPiece.currentSlotIndex = targetSlotIndex;
+      } else if (piece.currentSlotIndex === targetSlotIndex) {
+        updatedPiece.currentSlotIndex = sourceSlotIndex;
+      }
+
+      // Check lock state
+      if (updatedPiece.currentSlotIndex === updatedPiece.correctSlotIndex) {
+        updatedPiece.isLocked = true;
+      }
+      
+      return updatedPiece;
+    });
+
+    set({ pieces: newPieces, moveCount: state.moveCount + 1 });
+
+    // Internal check win
+    const allLocked = newPieces.every(p => p.isLocked);
+    if (allLocked && newPieces.length > 0) {
+      set({ isComplete: true, scene: "completed" });
     }
   },
 

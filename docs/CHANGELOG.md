@@ -4,6 +4,12 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.3] - Slot-Based Grid Drag Implementation
+- Migrated puzzle physics to a Slot-Based Gameplay architecture. Pieces track their current and correct slot indices rather than arbitrary spatial coordinates.
+- Implemented `movePieceToSlot` within `PuzzleStore` to centralize drag swaps, locks, and condition checks.
+- Enabled grid-locked dragging using Framer Motion on the puzzle pieces, disabling pointer events entirely on locked pieces.
+- Added a placeholder UI element for the `"completed"` scene, laying out state paths for Sprint 5.4 win effects.
+
 ## [Sprint 5.2.2] - Puzzle Visual Refinement
 - Removed background segmentation from the Puzzle Image Pipeline to simplify architecture and eliminate preprocessing latency.
 - Updated `ARCHITECTURE_FREEZE.md` to reflect distinct, decoupled image pipelines for Photo Booth and Puzzle Experience.
