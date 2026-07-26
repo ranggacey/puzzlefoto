@@ -1,30 +1,22 @@
-import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+"use client";
 
-export default function BackgroundRemovalPlaceholderPage() {
-  return (
-    <main className="flex h-screen w-full flex-col items-center justify-center bg-background p-6">
-      <div className="flex max-w-md flex-col items-center text-center">
-        <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Sparkles className="h-10 w-10" />
-        </div>
-        
-        <h1 className="mb-4 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
-          AI Background Removal
-        </h1>
-        
-        <p className="mb-8 text-lg text-muted-foreground">
-          This feature will be implemented in Sprint 4. The captured photos will be processed here to remove the background securely on-device using MediaPipe.
-        </p>
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
 
-        <Link
-          href="/photo-booth"
-          className="inline-flex h-12 items-center gap-2 rounded-xl bg-secondary px-6 text-sm font-medium text-secondary-foreground transition-colors hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Photo Booth
-        </Link>
+// Lazy load the heavy ML engine so it doesn't inflate the landing page or initial bundle
+const BackgroundStudio = dynamic(
+  () => import("@/features/background-studio/components/background-studio").then((mod) => mod.BackgroundStudio),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-background text-foreground">
+        <Loader2 className="mb-4 h-12 w-12 animate-spin text-primary" />
+        <h2 className="text-xl font-bold tracking-tight">Loading AI Engine...</h2>
       </div>
-    </main>
-  );
+    ),
+  }
+);
+
+export default function BackgroundStudioPage() {
+  return <BackgroundStudio />;
 }
