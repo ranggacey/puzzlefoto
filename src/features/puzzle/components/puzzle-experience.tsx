@@ -11,6 +11,8 @@ import { PuzzleBoard } from "./puzzle-board";
 import { DifficultySelectionOverlay } from "./difficulty-selection-overlay";
 import { PuzzleCompletedOverlay } from "./puzzle-completed-overlay";
 import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
+import { HandTrackingProvider } from "@/features/hand-tracking/providers/hand-tracking-provider";
+import { PointerOverlay } from "@/features/hand-tracking/components/pointer-overlay";
 
 export function PuzzleExperience() {
   const { scene, sourceImage, pieces, difficulty, isTimerRunning, startedAt, setScene, setSourceImage, setDifficulty, generatePuzzle, reset, setElapsedTime } = usePuzzleStore();
@@ -74,8 +76,9 @@ export function PuzzleExperience() {
 
   return (
     <FullscreenLayout>
-      <PuzzleStage>
-        <LiveBackground />
+      <HandTrackingProvider>
+        <PuzzleStage>
+          <LiveBackground />
         
         {(scene === "camera" || scene === "capturing") && (
           <CaptureOverlay onCapture={handleCapture} />
@@ -97,10 +100,13 @@ export function PuzzleExperience() {
           <PuzzleBoard pieces={pieces} sourceImage={sourceImage} difficulty={difficulty} />
         )}
 
+        <PointerOverlay />
+
         {scene === "completed" && (
           <PuzzleCompletedOverlay />
         )}
-      </PuzzleStage>
+        </PuzzleStage>
+      </HandTrackingProvider>
     </FullscreenLayout>
   );
 }

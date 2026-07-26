@@ -1,12 +1,16 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
-import { CameraState, CameraContextType } from "@/features/photo-booth/types/camera";
+import { CameraState, CameraContextType as BaseCameraContextType } from "@/features/photo-booth/types/camera";
 import { cameraService } from "@/services/camera.service";
 import { captureService } from "@/services/capture.service";
 import { cameraDebug, cameraWarn, startCameraTimer, endCameraTimer } from "@/features/photo-booth/utils/camera-debug";
 
-const PuzzleCameraContext = createContext<CameraContextType | null>(null);
+export interface PuzzleCameraContextType extends BaseCameraContextType {
+  getVideoElement: () => HTMLVideoElement | null;
+}
+
+const PuzzleCameraContext = createContext<PuzzleCameraContextType | null>(null);
 
 export function PuzzleCameraProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<CameraState>("IDLE");
@@ -142,6 +146,8 @@ export function PuzzleCameraProvider({ children }: { children: React.ReactNode }
 
   const switchCamera = useCallback(() => {}, []);
 
+  const getVideoElement = useCallback(() => videoRef.current, []);
+
   const contextValue = React.useMemo(() => ({
     state,
     devices: [],
@@ -153,8 +159,9 @@ export function PuzzleCameraProvider({ children }: { children: React.ReactNode }
     restart,
     capture,
     switchCamera,
-    attachVideo
-  }), [state, error, start, stop, restart, capture, switchCamera, attachVideo]);
+    attachVideo,
+    getVideoElement
+  }), [state, error, start, stop, restart, capture, switchCamera, attachVideo, getVideoElement]);
 
   // We mock out irrelevant context methods for Puzzle (capture, switchCamera)
   // to satisfy CameraContextType since HandTracking only needs the stream, 

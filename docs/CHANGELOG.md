@@ -4,6 +4,12 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.5] - Hand Tracking Foundation
+- Integrated MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) to run hand tracking inference.
+- Created `HandTrackingProvider` to intercept the existing `PuzzleCameraProvider` MediaStream and execute an unblocking `requestAnimationFrame` loop.
+- Defined a canonical, decoupled `HandState` interface and established a `PointerSmoothing` system via EMA.
+- Developed the `PointerOverlay` presentation layer, visualizing hand coordinates with a smooth trail, decoupled entirely from the core Puzzle Engine.
+
 ## [Sprint 5.4] - Victory Experience & Session Flow
 - Implemented a delayed, decoupled victory presentation state without polluting the underlying gameplay mechanics.
 - Finalized visual hierarchy for locked puzzle pieces (full opacity, no border, subtle glow) combined with a unified board scale-up animation.

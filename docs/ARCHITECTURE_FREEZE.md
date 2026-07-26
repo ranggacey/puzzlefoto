@@ -165,6 +165,25 @@ AI Models (Background Segmentation, Hand Tracking, Gesture Recognition, and futu
 - **Framework Agnostic**: Core processing does not rely on React components.
 - **Processing Only**: They own inference and processing. They never own UI, never manage routing, and never own application state.
 
+### Pointer Rendering
+
+The visual pointer is a presentation layer built on top of normalized hand tracking data.
+
+The pointer:
+- does not own tracking state;
+- does not modify AI inference results;
+- does not interact directly with the Puzzle Engine;
+- renders only the interaction state exposed by `HandState`.
+
+Visual effects including:
+- glow;
+- motion trail;
+- hover visuals;
+- ripple;
+- magnetic assistance;
+
+must remain purely presentational and must never alter the underlying tracking coordinates or gameplay logic.
+
 ---
 
 ## 11. Resource Lifecycle
