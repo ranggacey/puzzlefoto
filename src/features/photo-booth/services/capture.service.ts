@@ -11,7 +11,6 @@ class CaptureService {
     const { format = "dataUrl", mirror = false } = options;
 
     if (!videoElement.videoWidth || !videoElement.videoHeight) {
-      console.warn("Video element is not ready for capture.");
       return null;
     }
 
@@ -21,7 +20,6 @@ class CaptureService {
     const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      console.warn("Failed to get 2d context from canvas.");
       return null;
     }
 

@@ -28,4 +28,3 @@ export const navigation = {
   },
 } as const;
 
-export type NavItem = (typeof navigation.main)[number];

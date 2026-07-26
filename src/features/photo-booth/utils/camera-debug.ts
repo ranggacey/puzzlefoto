@@ -1,4 +1,4 @@
-export const CAMERA_DEBUG = true;
+const CAMERA_DEBUG = false;
 
 export function cameraDebug(message: string, ...args: unknown[]) {
   if (CAMERA_DEBUG) {
@@ -9,12 +9,6 @@ export function cameraDebug(message: string, ...args: unknown[]) {
 export function cameraWarn(message: string, ...args: unknown[]) {
   if (CAMERA_DEBUG) {
     console.warn(`%c⚠️ ${message}`, "color: #ffaa00; font-weight: bold;", ...args);
-  }
-}
-
-export function cameraError(message: string, ...args: unknown[]) {
-  if (CAMERA_DEBUG) {
-    console.error(`%c🚨 ${message}`, "color: #ff0000; font-weight: bold;", ...args);
   }
 }
 
@@ -57,15 +51,6 @@ export function startCameraTimer(label: string) {
   if (!CAMERA_DEBUG) return;
   timers.set(label, performance.now());
   cameraDebug(`[Timing] ⏱️ started: ${label}`);
-}
-
-export function logCameraTimer(label: string, message: string) {
-  if (!CAMERA_DEBUG) return;
-  const start = timers.get(label);
-  if (start) {
-    const elapsed = Math.round(performance.now() - start);
-    cameraDebug(`[Timing] ⏱️ ${message}: ${elapsed}ms`);
-  }
 }
 
 export function endCameraTimer(label: string) {
