@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useCaptureStore } from "@/store/camera-store";
 import { MODE_CONFIGS } from "@/features/photo-booth/constants/modes";
 import { CaptureModeSelector } from "@/features/photo-booth/components/capture-mode-selector";
@@ -17,10 +17,19 @@ export default function PhotoBoothPage() {
     clearPhotos 
   } = useCaptureStore();
 
+  // Local state for the mode selector before they hit "Start Camera"
+  const [draftMode, setDraftMode] = useState<CaptureMode | null>(mode);
+
   const handleSelectMode = useCallback((modeId: CaptureMode) => {
-    setMode(modeId);
-    clearPhotos();
-  }, [setMode, clearPhotos]);
+    setDraftMode(modeId);
+  }, []);
+
+  const handleStartCamera = useCallback(() => {
+    if (draftMode) {
+      setMode(draftMode);
+      clearPhotos();
+    }
+  }, [draftMode, setMode, clearPhotos]);
 
   const handlePhotoCaptured = useCallback((photo: CapturedPhoto) => {
     addPhoto(photo);
@@ -30,20 +39,19 @@ export default function PhotoBoothPage() {
     clearPhotos();
   }, [clearPhotos]);
 
+  const handleBackToModeSelection = useCallback(() => {
+    setMode(null);
+    clearPhotos();
+  }, [setMode, clearPhotos]);
+
   // 1. Capture Mode Selection
   if (!mode) {
     return (
       <CaptureModeSelector
         configs={Object.values(MODE_CONFIGS)}
-        selectedModeId={mode}
+        selectedModeId={draftMode}
         onSelectMode={handleSelectMode}
-        onStart={() => {
-          // Mode is already selected, UI will naturally progress because 
-          // we require `mode` to be set. The "Start Camera" button in the selector
-          // just ensures they have clicked something, but since we set it instantly
-          // we don't strictly need `onStart` to do anything other than trigger 
-          // a visual transition if we wanted one.
-        }}
+        onStart={handleStartCamera}
       />
     );
   }
@@ -57,12 +65,7 @@ export default function PhotoBoothPage() {
         photos={capturedPhotos} 
         config={activeConfig} 
         onRetakeAll={handleRetakeAll} 
-        onBack={() => {
-          // If we want to return to the camera while keeping photos (unlikely), we wouldn't clear photos.
-          // In this case, "Back" from preview means they changed their mind about the layout or want to start over.
-          setMode(null);
-          clearPhotos();
-        }}
+        onBack={handleBackToModeSelection}
       />
     );
   }
@@ -73,7 +76,7 @@ export default function PhotoBoothPage() {
       config={activeConfig}
       onPhotoCaptured={handlePhotoCaptured}
       currentPhotoCount={capturedPhotos.length}
-      onBack={() => setMode(null)}
+      onBack={handleBackToModeSelection}
     />
   );
 }

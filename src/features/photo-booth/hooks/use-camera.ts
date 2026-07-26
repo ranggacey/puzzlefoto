@@ -1,93 +1,98 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useCameraStore } from "@/store/camera-store";
 import { cameraService } from "../services/camera.service";
 import { FacingMode } from "../types/camera";
 
 export function useCamera() {
-  const {
-    isActive,
-    facingMode,
-    deviceId,
-    activeStream,
-    permissionStatus,
-    streamState,
-    error,
-    setActive,
-    setFacingMode,
-    setDeviceId,
-    setActiveStream,
-    setPermissionStatus,
-    setStreamState,
-    setError,
-  } = useCameraStore();
+  const store = useCameraStore();
+  const startAttemptRef = useRef(0);
+  
+  // Track previous constraints to detect changes safely
+  const prevConstraintsRef = useRef({ deviceId: store.deviceId, facingMode: store.facingMode });
 
   const startCamera = useCallback(async () => {
-    setStreamState("loading");
-    setError(null);
+    const attempt = ++startAttemptRef.current;
+    
+    store.setStreamState("loading");
+    store.setError(null);
+    
     try {
-      const stream = await cameraService.startStream(deviceId, facingMode);
-      setActiveStream(stream);
-      setActive(true);
-      setPermissionStatus("granted");
-      setStreamState("success");
+      const stream = await cameraService.startStream(store.deviceId, store.facingMode);
+      
+      // If we made a newer attempt while waiting, discard this one
+      if (attempt !== startAttemptRef.current) return;
+
+      store.setActiveStream(stream);
+      store.setActive(true);
+      store.setPermissionStatus("granted");
+      store.setStreamState("success");
     } catch (err: unknown) {
-      setStreamState("error");
+      if (attempt !== startAttemptRef.current) return;
+      
+      store.setStreamState("error");
       if (err instanceof Error) {
-        setError(err.message || "Failed to start camera");
+        if (err.message.includes("aborted")) return;
+        
+        store.setError(err.message || "Failed to start camera");
         if (err.name === "NotAllowedError") {
-          setPermissionStatus("denied");
+          store.setPermissionStatus("denied");
         }
       } else {
-        setError("Failed to start camera");
+        store.setError("Failed to start camera");
       }
     }
-  }, [deviceId, facingMode, setActiveStream, setActive, setPermissionStatus, setStreamState, setError]);
+  }, [store.deviceId, store.facingMode, store.setActiveStream, store.setActive, store.setPermissionStatus, store.setStreamState, store.setError]);
 
   const stopCamera = useCallback(() => {
-    cameraService.stopStream();
-    setActiveStream(null);
-    setActive(false);
-    setStreamState("idle");
-  }, [setActiveStream, setActive, setStreamState]);
+    startAttemptRef.current++; // Invalidate any pending starts
+    cameraService.cleanup();
+    store.setActiveStream(null);
+    store.setActive(false);
+    store.setStreamState("idle");
+  }, [store.setActiveStream, store.setActive, store.setStreamState]);
 
   const toggleFacingMode = useCallback(() => {
-    const newMode: FacingMode = facingMode === "user" ? "environment" : "user";
-    setFacingMode(newMode);
-    // Remove explicit deviceId if switching mode, otherwise it might conflict
-    setDeviceId(null); 
-  }, [facingMode, setFacingMode, setDeviceId]);
+    const newMode: FacingMode = store.facingMode === "user" ? "environment" : "user";
+    store.setFacingMode(newMode);
+    store.setDeviceId(null); 
+  }, [store.facingMode, store.setFacingMode, store.setDeviceId]);
 
-  // Handle stream lifecycle: restart stream if constraints change and camera is active
+  // Restart camera when constraints change, IF it's already active
   useEffect(() => {
-    if (isActive) {
+    const constraintsChanged = 
+      prevConstraintsRef.current.deviceId !== store.deviceId || 
+      prevConstraintsRef.current.facingMode !== store.facingMode;
+      
+    if (store.isActive && constraintsChanged) {
       startCamera();
     }
-    return () => {
-      // Intentionally not stopping the stream on every constraint change unmount here 
-      // to avoid flickers, but we rely on startCamera calling cleanup internally.
-    };
-  }, [deviceId, facingMode, isActive, startCamera]);
+    
+    prevConstraintsRef.current = { deviceId: store.deviceId, facingMode: store.facingMode };
+  }, [store.deviceId, store.facingMode, store.isActive, startCamera]);
 
   // Full cleanup on hook unmount
   useEffect(() => {
     return () => {
+      startAttemptRef.current++;
       cameraService.cleanup();
-      setActiveStream(null);
-      setActive(false);
+      // We don't call Zustand setters on unmount to avoid React warnings about updates during unmount,
+      // but if we do, it's fine. We need to reset the active state.
+      store.setActiveStream(null);
+      store.setActive(false);
     };
-  }, [setActiveStream, setActive]);
+  }, [store.setActiveStream, store.setActive]);
 
   return {
-    isActive,
-    activeStream,
-    facingMode,
-    deviceId,
-    permissionStatus,
-    streamState,
-    error,
+    isActive: store.isActive,
+    activeStream: store.activeStream,
+    facingMode: store.facingMode,
+    deviceId: store.deviceId,
+    permissionStatus: store.permissionStatus,
+    streamState: store.streamState,
+    error: store.error,
     startCamera,
     stopCamera,
     toggleFacingMode,
-    setDeviceId,
+    setDeviceId: store.setDeviceId,
   };
 }

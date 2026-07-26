@@ -39,12 +39,12 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
   const [isCapturingFrame, setIsCapturingFrame] = useState(false);
   const [latestThumbnail, setLatestThumbnail] = useState<string | null>(null);
 
-  // Auto-request permission on mount if needed
+  // Auto-request permission or start camera on mount
   useEffect(() => {
-    if (permissionStatus === "prompt") {
+    if (permissionStatus === "prompt" || (permissionStatus === "granted" && !activeStream)) {
       startCamera();
     }
-  }, [permissionStatus, startCamera]);
+  }, [permissionStatus, activeStream, startCamera]);
 
   const handleCaptureAction = useCallback(async () => {
     const videoElement = document.querySelector("video");

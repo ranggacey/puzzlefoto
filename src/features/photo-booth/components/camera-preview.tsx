@@ -11,9 +11,21 @@ export function CameraPreview({ stream, facingMode, className }: CameraPreviewPr
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      // Connect stream to video element
-      videoRef.current.srcObject = stream;
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    if (stream) {
+      videoElement.srcObject = stream;
+      
+      // Attempt to auto-play to prevent black screens on some devices
+      const playPromise = videoElement.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.warn("Auto-play was prevented or interrupted:", error);
+        });
+      }
+    } else {
+      videoElement.srcObject = null;
     }
   }, [stream]);
 

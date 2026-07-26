@@ -10,6 +10,7 @@ import { DEFAULT_CAMERA_CONSTRAINTS } from "../constants/camera";
 
 class CameraService {
   private activeStream: MediaStream | null = null;
+  private startStreamId = 0;
 
   /**
    * Request camera permissions.
@@ -51,7 +52,10 @@ class CameraService {
    * Start the camera stream with given constraints.
    */
   async startStream(deviceId?: string | null, facingMode?: FacingMode): Promise<MediaStream> {
-    this.cleanup(); // Ensure any existing stream is stopped first
+    const currentId = ++this.startStreamId;
+    
+    // Ensure any existing stream is stopped first
+    this.cleanup(); 
 
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new CameraError("getUserMedia is not supported by this browser.");
@@ -67,11 +71,19 @@ class CameraService {
     };
 
     try {
-      this.activeStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      // If another startStream was called while we were waiting, kill this one to avoid leaks
+      if (this.startStreamId !== currentId) {
+        stream.getTracks().forEach(t => t.stop());
+        throw new CameraError("Camera start aborted because a newer request was made.");
+      }
+
+      this.activeStream = stream;
       return this.activeStream;
     } catch (error) {
       this.handleMediaError(error);
-      throw error; // handleMediaError should throw, this is a fallback
+      throw error; 
     }
   }
 
@@ -100,6 +112,7 @@ class CameraService {
    * Stops all active tracks.
    */
   cleanup(): void {
+    this.startStreamId++; // Invalidate any pending starts
     this.stopStream();
   }
 
@@ -130,6 +143,11 @@ class CameraService {
    */
   private handleMediaError(error: unknown): never {
     if (error instanceof Error) {
+      // Don't remap custom CameraErrors we just threw ourselves
+      if (error instanceof CameraError) {
+        throw error;
+      }
+      
       switch (error.name) {
         case "NotAllowedError":
         case "SecurityError":
