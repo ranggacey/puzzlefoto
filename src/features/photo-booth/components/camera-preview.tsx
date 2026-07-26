@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import { cn } from "@/lib/utils";
 import { useCamera } from "@/features/photo-booth/hooks/use-camera";
 import { FacingMode } from "@/features/photo-booth/types/camera";
+import { cameraDebug, endCameraTimer } from "@/features/photo-booth/utils/camera-debug";
 
 interface CameraPreviewProps {
-  facingMode: FacingMode;
+  facingMode?: FacingMode;
   className?: string;
 }
 
@@ -13,26 +13,56 @@ export function CameraPreview({ facingMode, className }: CameraPreviewProps) {
   const camera = useCamera();
 
   useEffect(() => {
-    // Attach the video element to the CameraProvider
-    camera.attachVideo(videoRef.current);
+    cameraDebug("[Preview] mounted");
+    return () => {
+      cameraDebug("[Preview] unmounted");
+    };
+  }, []);
 
-    // Detach on unmount
+  useEffect(() => {
+    const el = videoRef.current;
+    if (el) {
+      cameraDebug("[Preview] video ref attached");
+    }
+    camera.attachVideo(el);
     return () => {
       camera.attachVideo(null);
     };
   }, [camera]);
 
+  const getTransform = () => {
+    if (facingMode === "user") {
+      return "scaleX(-1)";
+    }
+    return "none";
+  };
+
   return (
-    <video
-      ref={videoRef}
-      autoPlay
-      playsInline
-      muted
-      className={cn(
-        "h-full w-full object-cover transition-transform duration-300",
-        facingMode === "user" && "scale-x-[-1]", // Mirror front camera
-        className
-      )}
-    />
+    <div className={`relative h-full w-full overflow-hidden bg-black ${className || ""}`}>
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="h-full w-full object-cover transition-transform duration-300"
+        style={{ transform: getTransform() }}
+        onLoadedMetadata={() => {
+          cameraDebug("[Preview] metadata loaded");
+        }}
+        onCanPlay={() => {
+          cameraDebug("[Preview] can play");
+        }}
+        onPlaying={() => {
+          cameraDebug("[Preview] playing");
+          endCameraTimer("videoPlay");
+        }}
+        onPause={() => {
+          cameraDebug("[Preview] paused");
+        }}
+        onError={(e) => {
+          cameraDebug("[Preview] video error", e.currentTarget.error);
+        }}
+      />
+    </div>
   );
 }

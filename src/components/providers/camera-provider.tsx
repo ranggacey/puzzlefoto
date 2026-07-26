@@ -5,6 +5,8 @@ import { CameraDevice, CameraState, FacingMode, CameraContextType } from "@/feat
 import { cameraService } from "@/features/photo-booth/services/camera.service";
 import { captureService } from "@/features/photo-booth/services/capture.service";
 
+import { cameraDebug, cameraWarn, startCameraTimer, endCameraTimer } from "@/features/photo-booth/utils/camera-debug";
+
 const CameraContext = createContext<CameraContextType | null>(null);
 
 export function CameraProvider({ children }: { children: React.ReactNode }) {
@@ -34,38 +36,58 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
     return () => { mounted = false; };
   }, []);
 
+  // Helper to log state transitions
+  const setCameraState = useCallback((newState: CameraState) => {
+    setState((prevState) => {
+      if (prevState !== newState) {
+        cameraDebug(`[Camera] state:\n${prevState} -> ${newState}`);
+      }
+      return newState;
+    });
+  }, []);
+
   const start = useCallback(async () => {
+    cameraDebug("[Camera] start() called");
     const attempt = ++startAttemptRef.current;
     
-    setState("STARTING");
+    setCameraState("STARTING");
     setError(null);
     
     try {
       // If we already have a stream, stop it first to ensure a clean start
       if (activeStreamRef.current) {
+        cameraDebug("[Camera] clearing existing stream before start");
         cameraService.stopStream(activeStreamRef.current);
         activeStreamRef.current = null;
       }
 
+      startCameraTimer("startToReady");
       const stream = await cameraService.openStream(deviceId, facingMode);
       
       // If we made a newer attempt while waiting, discard this one
       if (attempt !== startAttemptRef.current) {
+        cameraWarn("[Camera] discarding stream due to newer start attempt");
         cameraService.stopStream(stream);
         return;
       }
 
+      cameraDebug("[Camera] stream stored");
       activeStreamRef.current = stream;
 
       if (videoRef.current) {
+        cameraDebug("[Camera] srcObject assigned immediately inside start()");
         videoRef.current.srcObject = stream;
+        startCameraTimer("videoPlay");
         const playPromise = videoRef.current.play();
         if (playPromise !== undefined) {
-          playPromise.catch(e => console.warn("Video play interrupted:", e));
+          playPromise.catch(e => cameraWarn("[Camera] Video play interrupted:", e));
         }
+      } else {
+        cameraWarn("[Camera] videoRef is null when stream resolves!");
       }
 
-      setState("READY");
+      setCameraState("READY");
+      endCameraTimer("startToReady");
     } catch (err: unknown) {
       if (attempt !== startAttemptRef.current) return;
       
@@ -74,22 +96,24 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
         
         setError(err.message || "Failed to start camera");
         if (err.name === "NotAllowedError") {
-          setState("ERROR");
+          setCameraState("ERROR");
         } else {
-          setState("ERROR");
+          setCameraState("ERROR");
         }
       } else {
         setError("Failed to start camera");
-        setState("ERROR");
+        setCameraState("ERROR");
       }
     }
-  }, [deviceId, facingMode]);
+  }, [deviceId, facingMode, setCameraState]);
 
   const stop = useCallback(() => {
+    cameraDebug("[Camera] stop() called");
     startAttemptRef.current++; // Invalidate any pending starts
-    setState("STOPPING");
+    setCameraState("STOPPING");
     
     if (activeStreamRef.current) {
+      cameraDebug("[Camera] stream cleared");
       cameraService.stopStream(activeStreamRef.current);
       activeStreamRef.current = null;
     }
@@ -97,10 +121,11 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-    setState("STOPPED");
-  }, []);
+    setCameraState("STOPPED");
+  }, [setCameraState]);
 
   const restart = useCallback(async () => {
+    cameraDebug("[Camera] restart() called");
     stop();
     return start();
   }, [stop, start]);
@@ -126,32 +151,41 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
     if (!videoRef.current || state !== "READY") return null;
     
     const prevState = state;
-    setState("CAPTURING");
+    setCameraState("CAPTURING");
     
     try {
       const dataUrl = await captureService.captureFrame(videoRef.current, {
         format: "dataUrl",
         mirror: facingMode === "user",
       });
-      setState(prevState);
+      setCameraState(prevState);
       return typeof dataUrl === "string" ? dataUrl : null;
     } catch (err) {
       console.error("Capture failed:", err);
-      setState(prevState);
+      setCameraState(prevState);
       return null;
     }
-  }, [facingMode, state]);
+  }, [facingMode, state, setCameraState]);
 
   const attachVideo = useCallback((element: HTMLVideoElement | null) => {
+    cameraDebug(`[Camera] attachVideo() called with ${element ? 'element' : 'null'}`);
     videoRef.current = element;
     
     if (element && activeStreamRef.current) {
       if (element.srcObject !== activeStreamRef.current) {
+        cameraDebug("[Camera] attachVideo() success: srcObject assigned");
         element.srcObject = activeStreamRef.current;
+        startCameraTimer("videoPlay");
         const playPromise = element.play();
         if (playPromise !== undefined) {
-          playPromise.catch(e => console.warn("Video play interrupted:", e));
+          playPromise.catch(e => cameraWarn("[Camera] Video play interrupted:", e));
         }
+      } else {
+        cameraDebug("[Camera] attachVideo(): srcObject already assigned");
+      }
+    } else {
+      if (element && !activeStreamRef.current) {
+        cameraDebug("[Camera] attachVideo() failed: activeStreamRef is null");
       }
     }
   }, []);

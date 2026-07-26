@@ -7,12 +7,14 @@ import {
   FacingMode 
 } from "../types/camera";
 import { DEFAULT_CAMERA_CONSTRAINTS } from "../constants/camera";
+import { cameraDebug, logStreamInfo, cameraWarn, startCameraTimer, endCameraTimer } from "../utils/camera-debug";
 
 class CameraService {
   /**
    * Enumerate available video input devices.
    */
   async enumerateDevices(): Promise<CameraDevice[]> {
+    cameraDebug("[CameraService] enumerateDevices()");
     if (!navigator.mediaDevices?.enumerateDevices) {
       throw new CameraError("Device enumeration is not supported by this browser.");
     }
@@ -35,6 +37,8 @@ class CameraService {
    * Open the camera stream with given constraints.
    */
   async openStream(deviceId?: string | null, facingMode?: FacingMode): Promise<MediaStream> {
+    cameraDebug("[CameraService] openStream() Requesting MediaStream", { deviceId, facingMode });
+    startCameraTimer("getUserMedia");
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new CameraError("getUserMedia is not supported by this browser.");
     }
@@ -49,8 +53,17 @@ class CameraService {
     };
 
     try {
-      return await navigator.mediaDevices.getUserMedia(constraints);
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      endCameraTimer("getUserMedia");
+      cameraDebug("[CameraService] MediaStream created");
+      logStreamInfo(stream, "[CameraService]");
+      return stream;
     } catch (error) {
+      endCameraTimer("getUserMedia");
+      cameraDebug("[CameraService] getUserMedia failed", error);
+      if (error instanceof Error) {
+        cameraDebug(`name: ${error.name}\nmessage: ${error.message}`);
+      }
       this.handleMediaError(error);
       throw error; 
     }
@@ -60,8 +73,11 @@ class CameraService {
    * Stop a specific stream.
    */
   stopStream(stream: MediaStream | null): void {
+    cameraDebug("[CameraService] stopStream()");
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
+    } else {
+      cameraWarn("[CameraService] stopStream() called with null stream");
     }
   }
 
