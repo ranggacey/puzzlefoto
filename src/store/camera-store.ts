@@ -1,32 +1,37 @@
 import { create } from "zustand";
 import type { CaptureMode, LoadingState } from "@/types";
+import type { CameraDevice, PermissionStatus } from "@/features/photo-booth/types/camera";
 
 // ============================================================
-// Camera Store (shell for future implementation)
+// Camera Store
 // ============================================================
 
 interface CameraState {
-  /** Whether the camera stream is active */
+  permissionStatus: PermissionStatus;
+  devices: CameraDevice[];
+  activeStream: MediaStream | null;
   isActive: boolean;
-  /** Current facing mode */
   facingMode: "user" | "environment";
-  /** Selected device ID */
   deviceId: string | null;
-  /** Stream initialization state */
   streamState: LoadingState;
-  /** Error message if stream fails */
   error: string | null;
 
   // Actions
+  setPermissionStatus: (status: PermissionStatus) => void;
+  setDevices: (devices: CameraDevice[]) => void;
+  setActiveStream: (stream: MediaStream | null) => void;
   setActive: (active: boolean) => void;
   setFacingMode: (mode: "user" | "environment") => void;
-  setDeviceId: (id: string) => void;
+  setDeviceId: (id: string | null) => void;
   setStreamState: (state: LoadingState) => void;
   setError: (error: string | null) => void;
   reset: () => void;
 }
 
 const initialCameraState = {
+  permissionStatus: "prompt" as const,
+  devices: [],
+  activeStream: null,
   isActive: false,
   facingMode: "user" as const,
   deviceId: null,
@@ -37,6 +42,9 @@ const initialCameraState = {
 export const useCameraStore = create<CameraState>((set) => ({
   ...initialCameraState,
 
+  setPermissionStatus: (status) => set({ permissionStatus: status }),
+  setDevices: (devices) => set({ devices }),
+  setActiveStream: (stream) => set({ activeStream: stream }),
   setActive: (active) => set({ isActive: active }),
   setFacingMode: (mode) => set({ facingMode: mode }),
   setDeviceId: (id) => set({ deviceId: id }),
@@ -46,21 +54,15 @@ export const useCameraStore = create<CameraState>((set) => ({
 }));
 
 // ============================================================
-// Capture Store (shell for future implementation)
+// Capture Store
 // ============================================================
 
 interface CaptureState {
-  /** Selected capture mode */
   mode: CaptureMode;
-  /** Countdown value (3, 2, 1, 0) */
   countdown: number | null;
-  /** Whether the capture is in progress */
   isCapturing: boolean;
-  /** Captured image data URL */
   capturedImage: string | null;
-  /** Processing state for background removal etc. */
   processingState: LoadingState;
-  /** Selected virtual background URL */
   backgroundUrl: string | null;
 
   // Actions
