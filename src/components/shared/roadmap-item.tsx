@@ -16,21 +16,21 @@ const statusConfig = {
     icon: Check,
     dotColor: "bg-emerald-500",
     lineColor: "bg-emerald-500/30",
-    badgeColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    badgeColor: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
     label: "Completed",
   },
   "in-progress": {
     icon: Loader2,
-    dotColor: "bg-blue-500",
-    lineColor: "bg-blue-500/30",
-    badgeColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    dotColor: "bg-primary",
+    lineColor: "bg-primary/30",
+    badgeColor: "bg-primary/10 text-primary border-primary/20",
     label: "In Progress",
   },
   planned: {
     icon: Circle,
-    dotColor: "bg-zinc-600",
-    lineColor: "bg-zinc-800",
-    badgeColor: "bg-zinc-800 text-zinc-400 border-zinc-700",
+    dotColor: "bg-muted-foreground",
+    lineColor: "bg-border",
+    badgeColor: "bg-muted text-muted-foreground border-border",
     label: "Planned",
   },
 };
@@ -64,7 +64,7 @@ export function RoadmapItem({ phase, isLast }: RoadmapItemProps) {
       {/* Content */}
       <div className="pb-12">
         <div className="mb-3 flex flex-wrap items-center gap-3">
-          <span className="text-xs font-semibold tracking-widest text-zinc-500 uppercase">
+          <span className="text-xs font-semibold tracking-widest text-muted-foreground uppercase">
             {phase.phase}
           </span>
           <span
@@ -77,7 +77,7 @@ export function RoadmapItem({ phase, isLast }: RoadmapItemProps) {
           </span>
         </div>
 
-        <h3 className="mb-3 text-lg font-semibold tracking-tight text-zinc-100">
+        <h3 className="mb-3 text-lg font-semibold tracking-tight text-foreground">
           {phase.title}
         </h3>
 
@@ -85,12 +85,12 @@ export function RoadmapItem({ phase, isLast }: RoadmapItemProps) {
           {phase.items.map((item) => (
             <li
               key={item}
-              className="flex items-start gap-2.5 text-sm text-zinc-400"
+              className="flex items-start gap-2.5 text-sm text-muted-foreground"
             >
               <div
                 className={cn(
                   "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                  phase.status === "completed" ? "bg-emerald-500/50" : "bg-zinc-700",
+                  phase.status === "completed" ? "bg-emerald-500/50" : "bg-muted-foreground/50",
                 )}
               />
               {item}

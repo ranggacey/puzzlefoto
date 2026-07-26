@@ -35,7 +35,7 @@ function HeroSection() {
       {/* Background layers */}
       <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
       <div className="pointer-events-none absolute inset-0 bg-radial-fade" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-zinc-950" />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-6 pt-24 text-center">
         <motion.div
@@ -43,8 +43,8 @@ function HeroSection() {
           initial="hidden"
           animate="visible"
         >
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/80 px-4 py-1.5 text-xs font-medium text-zinc-400 backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
+          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/80 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm">
+            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
             Computer Vision Meets Interactive Design
           </span>
         </motion.div>
@@ -53,7 +53,7 @@ function HeroSection() {
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
-          className="mt-6 text-5xl font-bold leading-[1.1] tracking-tight text-zinc-50 sm:text-6xl md:text-7xl"
+          className="mt-6 text-5xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl"
         >
           Capture. Transform.
           <br />
@@ -65,7 +65,7 @@ function HeroSection() {
           initial="hidden"
           animate="visible"
           transition={{ delay: 0.1 }}
-          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400 sm:text-xl"
+          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl"
         >
           Take AI-enhanced photos and transform them into interactive puzzles
           controlled entirely by hand gestures. A showcase of modern web
@@ -81,14 +81,14 @@ function HeroSection() {
         >
           <Link
             href="/photo-booth"
-            className="group inline-flex h-12 items-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-medium text-white shadow-glow transition-all hover:bg-blue-500 active:scale-[0.98]"
+            className="group inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-glow transition-all hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Try Photo Booth
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
           </Link>
           <Link
             href="#features"
-            className="inline-flex h-12 items-center gap-2 rounded-xl border border-zinc-800 bg-zinc-900/50 px-6 text-sm font-medium text-zinc-300 backdrop-blur-sm transition-all hover:border-zinc-700 hover:bg-zinc-900/80 hover:text-zinc-100"
+            className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-background/50 px-6 text-sm font-medium text-foreground backdrop-blur-sm transition-all hover:border-border/80 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Learn More
           </Link>
@@ -161,7 +161,7 @@ const steps = [
 
 function HowItWorksSection() {
   return (
-    <Section id="how-it-works" className="border-t border-zinc-800/50">
+    <Section id="how-it-works" className="border-t border-border/50">
       <PageHeader
         badge="How It Works"
         title="Three Steps to Play"
@@ -184,19 +184,19 @@ function HowItWorksSection() {
               className="relative text-center"
             >
               {/* Step number */}
-              <span className="mb-6 block text-6xl font-bold tracking-tighter text-zinc-800/60">
+              <span className="mb-6 block text-6xl font-bold tracking-tighter text-muted/30">
                 {step.step}
               </span>
 
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-zinc-800/80 text-blue-400">
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-primary">
                 <Icon className="h-6 w-6" />
               </div>
 
-              <h3 className="mb-2 text-lg font-semibold tracking-tight text-zinc-100">
+              <h3 className="mb-2 text-lg font-semibold tracking-tight text-foreground">
                 {step.title}
               </h3>
 
-              <p className="text-sm leading-relaxed text-zinc-400">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {step.description}
               </p>
             </motion.div>
@@ -213,7 +213,7 @@ function HowItWorksSection() {
 
 function TechStackSection() {
   return (
-    <Section id="tech-stack" className="border-t border-zinc-800/50">
+    <Section id="tech-stack" className="border-t border-border/50">
       <PageHeader
         badge="Technology"
         title="Modern Tech Stack"
@@ -245,7 +245,7 @@ function TechStackSection() {
 
 function RoadmapSection() {
   return (
-    <Section id="roadmap" className="border-t border-zinc-800/50">
+    <Section id="roadmap" className="border-t border-border/50">
       <PageHeader
         badge="Roadmap"
         title="Development Timeline"

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
 import { siteConfig } from "@/constants/site";
+import { ThemeProvider } from "@/components/providers/theme-provider";
+import { MotionConfig } from "motion/react";
 import "./globals.css";
 
 const inter = Inter({
@@ -40,11 +42,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${geistMono.variable} dark h-full antialiased`}
+      suppressHydrationWarning
+      className={`${inter.variable} ${geistMono.variable} antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-zinc-950">
-        <Navbar />
-        {children}
+      <body className="flex min-h-screen flex-col bg-background text-foreground transition-colors duration-200">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <MotionConfig reducedMotion="user">
+            <Navbar />
+            {children}
+          </MotionConfig>
+        </ThemeProvider>
       </body>
     </html>
   );
