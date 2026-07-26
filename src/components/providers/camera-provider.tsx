@@ -15,6 +15,7 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const activeStreamRef = useRef<MediaStream | null>(null);
   const startAttemptRef = useRef(0);
 
   // Initialize devices list once
@@ -40,10 +41,21 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     
     try {
-      const stream = await cameraService.startStream(deviceId, facingMode);
+      // If we already have a stream, stop it first to ensure a clean start
+      if (activeStreamRef.current) {
+        cameraService.stopStream(activeStreamRef.current);
+        activeStreamRef.current = null;
+      }
+
+      const stream = await cameraService.openStream(deviceId, facingMode);
       
       // If we made a newer attempt while waiting, discard this one
-      if (attempt !== startAttemptRef.current) return;
+      if (attempt !== startAttemptRef.current) {
+        cameraService.stopStream(stream);
+        return;
+      }
+
+      activeStreamRef.current = stream;
 
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -76,7 +88,12 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
   const stop = useCallback(() => {
     startAttemptRef.current++; // Invalidate any pending starts
     setState("STOPPING");
-    cameraService.cleanup();
+    
+    if (activeStreamRef.current) {
+      cameraService.stopStream(activeStreamRef.current);
+      activeStreamRef.current = null;
+    }
+    
     if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
@@ -125,16 +142,12 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
     }
   }, [facingMode, state]);
 
-  const stateRef = useRef(state);
-  useEffect(() => { stateRef.current = state; }, [state]);
-
   const attachVideo = useCallback((element: HTMLVideoElement | null) => {
     videoRef.current = element;
     
-    if (element && stateRef.current === "READY") {
-      const stream = cameraService.getActiveStream();
-      if (stream && element.srcObject !== stream) {
-        element.srcObject = stream;
+    if (element && activeStreamRef.current) {
+      if (element.srcObject !== activeStreamRef.current) {
+        element.srcObject = activeStreamRef.current;
         const playPromise = element.play();
         if (playPromise !== undefined) {
           playPromise.catch(e => console.warn("Video play interrupted:", e));

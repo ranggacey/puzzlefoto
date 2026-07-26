@@ -108,7 +108,7 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
     // Just a fallback
   }
 
-  if (camera.state === "IDLE" || camera.state === "STARTING") {
+  if (camera.state === "IDLE") {
     return <div className="absolute inset-0 bg-background" />;
   }
 
@@ -125,6 +125,12 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
 
       {/* Note: CameraPreview now takes no stream, it just gets it via attachVideo */}
       <CameraPreview facingMode={camera.facingMode} />
+      
+      {camera.state === "STARTING" && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-muted border-t-primary"></div>
+        </div>
+      )}
       
       <FlashOverlay isActive={flashActive} />
       
