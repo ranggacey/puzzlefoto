@@ -101,11 +101,26 @@ Avoid implementing features outside the current sprint scope.
 
 ---
 
-## 7. Architecture Governance
+## 7. Sprint Documentation
+
+Every Sprint must create or update its corresponding document inside:
+`docs/SPRINTS/`
+
+A Sprint is not considered complete until:
+- implementation finished
+- documentation updated
+- verification completed
+- changelog updated
+
+Sprint documentation becomes part of the Definition of Done.
+
+---
+
+## 8. Architecture Governance
 
 Architecture changes require:
 
-1. Update `ARCHITECTURE_FREEZE.md`
+1. Update `docs/ARCHITECTURE_FREEZE.md`
 2. Review the proposal
 3. Approval
 4. Implementation

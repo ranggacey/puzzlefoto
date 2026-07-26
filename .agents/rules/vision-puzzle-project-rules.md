@@ -69,6 +69,20 @@ Separate responsibilities clearly between:
 
 ---
 
+# Documentation Synchronization
+
+Project documentation is the authoritative source of truth.
+
+Before implementing work that affects architecture, workflow, roadmap, public APIs, state ownership, or engineering decisions:
+
+- identify which documentation files are affected;
+- update those documents first (or within the same task);
+- keep implementation and documentation synchronized.
+
+Never leave the codebase in a state where documentation no longer reflects the implementation.
+
+---
+
 # Implementation Rules
 
 Implement features incrementally.
