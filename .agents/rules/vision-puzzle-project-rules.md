@@ -92,6 +92,43 @@ Production-quality implementation is expected.
 
 ---
 
+# Development Workflow
+
+Development follows a milestone-based workflow.
+
+Each major Sprint owns a dedicated integration branch.
+
+Every implementation Sprint may be divided into multiple sub-sprints.
+
+Sub-sprints must always branch from their parent Sprint branch.
+
+They must never branch directly from `main`.
+
+Development is sequential.
+
+Complete the current sub-sprint, merge it into the parent Sprint branch, and verify the repository before starting the next sub-sprint.
+
+Do not work on multiple future sub-sprints simultaneously.
+
+---
+
+# Git Workflow
+
+Before implementing any Sprint or Sub-Sprint:
+
+1. Verify the current Git branch.
+2. Verify `git status` is clean.
+3. If the required branch does not exist, create it.
+4. Confirm the active branch before modifying code.
+
+Never begin implementation until the repository state has been verified.
+
+All completed sub-sprints must be merged back into their parent Sprint branch.
+
+Only completed Sprint branches may be merged into `main`.
+
+---
+
 # Code Quality
 
 Write clean, maintainable, production-ready code.
@@ -325,6 +362,23 @@ Never silently change product behavior.
 
 ---
 
+# Architecture Governance
+
+Architecture is treated as a contractual specification.
+
+Whenever implementation requires an architectural change:
+
+1. Update the architecture documentation.
+2. Explain the impact.
+3. Wait for approval.
+4. Implement the code.
+
+Never silently change architecture.
+
+Documentation must evolve together with implementation.
+
+---
+
 # Definition of Done
 
 A sprint is considered complete only if:
@@ -340,6 +394,25 @@ A sprint is considered complete only if:
 - Code follows the established architecture
 
 If any requirement is not satisfied, the sprint is not complete.
+
+---
+
+# Documentation Requirements
+
+Documentation is part of the deliverable.
+
+If a Sprint changes any of the following:
+
+- architecture
+- folder structure
+- routing
+- public APIs
+- state ownership
+- development workflow
+
+the corresponding documentation must be updated before the Sprint can be considered complete.
+
+Outdated documentation is considered a project defect.
 
 ---
 
@@ -361,3 +434,19 @@ Consistency is more valuable than cleverness.
 Always implement exactly what is requested.
 
 Do not redesign the product unless explicitly instructed.
+
+---
+
+# Sprint Discipline
+
+Each Sprint and Sub-Sprint must have exactly one primary objective.
+
+Avoid implementing future Sprint functionality.
+
+Avoid speculative implementations.
+
+If functionality belongs to a future Sprint, stop and ask for approval before implementing it.
+
+Implement only the approved scope.
+
+---

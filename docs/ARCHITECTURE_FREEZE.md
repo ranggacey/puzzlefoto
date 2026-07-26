@@ -11,9 +11,9 @@ The application is structured into clearly delineated top-level domains:
 - **Landing Module**: The public-facing introduction to the product. Completely isolated from heavy interactive modules.
 - **Photo Booth Module**: The entry point for the core experience. Handles mode selection and transitions users to the camera flow.
 - **Camera Engine**: A robust, headless state machine and API abstraction layer over the browser's `navigator.mediaDevices` and hardware.
-- **Background Studio (Sprint 4)**: Responsible for AI-driven background removal (MediaPipe Selfiesegmentation) and photo customization.
-- **Puzzle Engine (Sprint 5)**: Responsible for rendering, shuffling, and validating the state of the jigsaw puzzle game on the Canvas.
-- **Hand Tracking (Sprint 6)**: An entirely decoupled AI input layer (MediaPipe Hand Tracking) that dispatches standardized coordinate events to the Puzzle Engine.
+- **Background Studio**: Responsible for AI-driven background removal (MediaPipe Selfie Segmentation) and photo customization.
+- **Puzzle Engine**: Responsible for rendering, shuffling, and validating the state of the jigsaw puzzle game on the Canvas.
+- **Hand Tracking**: An entirely decoupled AI input layer (MediaPipe Hand Tracking) that dispatches standardized coordinate events to the Puzzle Engine.
 
 ---
 
@@ -58,12 +58,12 @@ Features expose a minimalistic public API. Everything not explicitly exported is
 - `ResultPreview`: UI for reviewing captures.
 - `PhotoBoothPage`: The routed view.
 
-**Puzzle Engine Public API (Planned):**
+**Puzzle Engine Public API:**
 - `PuzzleStage`: The primary game board component.
 - `usePuzzle()`: Hook for querying game state.
 - `PuzzleConfig`: Configuration interface.
 
-**Hand Tracking Public API (Planned):**
+**Hand Tracking Public API:**
 - `HandTrackingProvider`: The tracker lifecycle manager.
 - `useHandTracking()`: Hook returning normalized coordinates.
 
@@ -119,7 +119,7 @@ Future UI additions must strictly adhere to the established design language to p
 
 ## 9. Performance Guidelines
 
-- **Lazy-Load Heavy ML**: Sprints 4-6 introduce MediaPipe and ONNX. These SDKs MUST be loaded using Next.js `next/dynamic` with `{ ssr: false }` or dynamic `import()` to guarantee the landing page remains perfectly lightweight.
+- **Lazy-Load Heavy ML**: Heavy AI dependencies (MediaPipe, ONNX) MUST be loaded using Next.js `next/dynamic` with `{ ssr: false }` or dynamic `import()` to guarantee the landing page remains perfectly lightweight.
 - **Render Optimization**: Avoid unnecessary re-renders in heavy contexts (like `PhotoStage` or `PuzzleStage`). Memoize handlers only when passing them to deep child components.
 - **MediaStream Hygiene**: Never maintain duplicate active MediaStream instances. `CameraProvider` guarantees singleton hardware access. Ensure previous streams are stopped synchronously before acquiring new ones.
 
@@ -127,11 +127,11 @@ Future UI additions must strictly adhere to the established design language to p
 
 ## 10. Future Extension Points
 
-The architecture is designed to accommodate the upcoming Sprints without massive refactors:
+The architecture is designed to accommodate the upcoming domains without massive refactors:
 
-- **Sprint 4 (Background Studio)**: Integrates directly into the flow *after* `Photo Booth` completes its required captures. It will consume the `capturedPhotos` array from Zustand, process them, and output modified images without touching the Camera Engine.
-- **Sprint 5 (Puzzle Engine)**: Mounts as an entirely separate full-screen interactive route. Consumes finalized images and generates the canvas game board.
-- **Sprint 6 (Hand Tracking)**: Will act as a transparent overlay/listener. `HandTrackingProvider` will intercept webcam frames, run MediaPipe, and dispatch virtual pointer events that the `Puzzle Engine` natively reacts to, requiring zero complex coupling between the two systems.
+- **Background Studio**: Integrates directly into the flow *after* `Photo Booth` completes its required captures. It will consume the `capturedPhotos` array from Zustand, process them, and output modified images without touching the Camera Engine.
+- **Puzzle Engine**: Mounts as an entirely separate full-screen interactive route. Consumes finalized images and generates the canvas game board.
+- **Hand Tracking**: Will act as a transparent overlay/listener. `HandTrackingProvider` will intercept webcam frames, run MediaPipe, and dispatch virtual pointer events that the `Puzzle Engine` natively reacts to, requiring zero complex coupling between the two systems.
 
 ---
 

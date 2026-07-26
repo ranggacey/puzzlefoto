@@ -1,0 +1,36 @@
+# Changelog
+
+All notable changes to the Vision Puzzle project will be documented in this file.
+
+---
+
+## [Sprint 4.5] - Landing Experience Redesign
+- Repositioned the Landing page to focus on Vision Puzzle as the primary product.
+- Introduced a CSS/Framer Motion-powered puzzle cracking animation for the Hero section.
+- Moved the Photo Booth to a secondary supporting feature section.
+- Updated the "How It Works" user journey steps.
+- Decoupled animation logic from layout logic for easier replacement in Sprint 5.
+
+## [Sprint 4.1] - Layout Architecture Standardization
+- Created a universal `LAYOUT` token configuration in `src/constants/layout.ts`.
+- Introduced `<FullscreenLayout>` to strictly manage safe-areas for all immersive features.
+- Purged all hardcoded layout magic numbers across Photo Stage, Result Preview, and Background Studio.
+
+## [Sprint 4] - Background Studio (AI Segmentation)
+- Integrated `@mediapipe/tasks-vision` selfie segmentation.
+- Implemented real-time background removal pipeline using Web Workers and Canvas composition.
+- Built the `BackgroundStudio` UI allowing users to apply custom colors, gradients, and original backgrounds.
+- Ensured complete isolation of the Background Studio from the core Camera Engine.
+
+## [Sprint 3.5] - Architecture Cleanup
+- Conducted a comprehensive audit of the codebase.
+- Removed dead code, unused shadcn primitives, and legacy placeholder logic.
+- Standardized file naming conventions across all features.
+- Formalized public APIs for features via `index.ts` barrel exports.
+- Frozen the foundational architecture via `ARCHITECTURE_FREEZE.md`.
+
+## [Sprint 3] - Camera Engine
+- Built a highly robust, headless `CameraProvider` context to manage `navigator.mediaDevices`.
+- Created `CameraService` to abstract browser hardware interactions.
+- Created `CaptureService` to handle taking snapshots from a video stream via Canvas.
+- Built the `PhotoStage` UI with dynamic capture modes (Single, Film Strip, Grid).
