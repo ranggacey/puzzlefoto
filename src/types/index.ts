@@ -9,7 +9,32 @@ export type AppView = "landing" | "photo-booth" | "puzzle";
 export type LoadingState = "idle" | "loading" | "success" | "error";
 
 /** Capture mode options for the Photo Booth */
-export type CaptureMode = "original" | "virtual-background" | "portrait";
+export enum CaptureMode {
+  SINGLE = "SINGLE",
+  GRID_2X2 = "GRID_2X2",
+  FILM_STRIP = "FILM_STRIP",
+}
+
+/** Data model for a single captured photo */
+export interface CapturedPhoto {
+  id: string;
+  image: string; // Data URL or Blob URL
+  timestamp: number;
+  width: number;
+  height: number;
+}
+
+/** Configuration for a specific capture mode */
+export interface CaptureModeConfig {
+  id: CaptureMode;
+  title: string;
+  description: string;
+  requiredPhotos: number;
+  aspectRatio: string;
+  previewLayout: "single" | "grid" | "filmStrip";
+  allowMirror: boolean;
+  allowBackgroundRemoval: boolean;
+}
 
 /** Gesture types recognized by the hand tracking system */
 export type GestureType =

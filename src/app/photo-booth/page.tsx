@@ -1,128 +1,79 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { useCamera } from "@/features/photo-booth/hooks/use-camera";
-import { useCameraDevices } from "@/features/photo-booth/hooks/use-camera-devices";
-import { useCountdown } from "@/features/photo-booth/hooks/use-countdown";
+import { useCallback } from "react";
 import { useCaptureStore } from "@/store/camera-store";
-import { captureService } from "@/features/photo-booth/services/capture.service";
-import { COUNTDOWN_OPTIONS } from "@/features/photo-booth/constants/camera";
-
-import { PermissionScreen } from "@/features/photo-booth/components/permission-screen";
-import { CameraPreview } from "@/features/photo-booth/components/camera-preview";
-import { CameraControls } from "@/features/photo-booth/components/camera-controls";
-import { CountdownOverlay } from "@/features/photo-booth/components/countdown-overlay";
-import { FlashOverlay } from "@/features/photo-booth/components/flash-overlay";
+import { MODE_CONFIGS } from "@/features/photo-booth/constants/modes";
+import { CaptureModeSelector } from "@/features/photo-booth/components/capture-mode-selector";
+import { PhotoStage } from "@/features/photo-booth/components/photo-stage";
 import { ResultPreview } from "@/features/photo-booth/components/result-preview";
+import { CapturedPhoto, CaptureMode } from "@/types";
 
 export default function PhotoBoothPage() {
-  const {
-    startCamera,
-    toggleFacingMode,
-    permissionStatus,
-    activeStream,
-    facingMode,
-  } = useCamera();
+  const { 
+    mode, 
+    setMode, 
+    capturedPhotos, 
+    addPhoto, 
+    clearPhotos 
+  } = useCaptureStore();
 
-  const { devices } = useCameraDevices();
-  const hasMultipleCameras = devices.length > 1;
+  const handleSelectMode = useCallback((modeId: CaptureMode) => {
+    setMode(modeId);
+    clearPhotos();
+  }, [setMode, clearPhotos]);
 
-  const { capturedImage, setCapturedImage, isCapturing, setCapturing } = useCaptureStore();
-  
-  const [flashActive, setFlashActive] = useState(false);
+  const handlePhotoCaptured = useCallback((photo: CapturedPhoto) => {
+    addPhoto(photo);
+  }, [addPhoto]);
 
-  // Auto-request permission on mount if we haven't asked yet
-  useEffect(() => {
-    if (permissionStatus === "prompt") {
-      startCamera();
-    }
-  }, [permissionStatus, startCamera]);
+  const handleRetakeAll = useCallback(() => {
+    clearPhotos();
+  }, [clearPhotos]);
 
-  const handleCaptureAction = useCallback(async () => {
-    const videoElement = document.querySelector("video");
-    if (!videoElement) return;
-
-    setFlashActive(true);
-    // Short delay to let flash render
-    await new Promise((res) => setTimeout(res, 50));
-
-    try {
-      const dataUrl = await captureService.captureFrame(videoElement, {
-        format: "dataUrl",
-        mirror: facingMode === "user",
-      });
-      
-      if (typeof dataUrl === "string") {
-        setCapturedImage(dataUrl);
-      }
-    } catch (err) {
-      console.error("Capture failed", err);
-    } finally {
-      setCapturing(false);
-      setTimeout(() => setFlashActive(false), 500); // Wait for flash fade out
-    }
-  }, [facingMode, setCapturedImage, setCapturing]);
-
-  const {
-    activeCountdown,
-    setActiveCountdown,
-    currentValue: countdownValue,
-    startCountdown,
-  } = useCountdown(handleCaptureAction);
-
-  const toggleCountdown = () => {
-    const currentIndex = COUNTDOWN_OPTIONS.indexOf(activeCountdown);
-    const nextIndex = (currentIndex + 1) % COUNTDOWN_OPTIONS.length;
-    setActiveCountdown(COUNTDOWN_OPTIONS[nextIndex]);
-  };
-
-  const handleRetake = () => {
-    setCapturedImage(null);
-  };
-
-  const handleContinue = () => {
-    // Future Sprint: Navigate to Puzzle Generation or Background Removal
-    alert("Continuing to next step (Future Sprint)");
-  };
-
-  // 1. Permission Gate
-  if (permissionStatus === "denied") {
-    return <PermissionScreen onGrantPermission={startCamera} isDenied />;
-  }
-
-  if (permissionStatus === "prompt") {
-    // Loading/Prompt state - keep background dark
-    return <div className="absolute inset-0 bg-background" />;
-  }
-
-  // 2. Result Preview
-  if (capturedImage) {
+  // 1. Capture Mode Selection
+  if (!mode) {
     return (
-      <ResultPreview 
-        imageUrl={capturedImage} 
-        onRetake={handleRetake} 
-        onContinue={handleContinue} 
+      <CaptureModeSelector
+        configs={Object.values(MODE_CONFIGS)}
+        selectedModeId={mode}
+        onSelectMode={handleSelectMode}
+        onStart={() => {
+          // Mode is already selected, UI will naturally progress because 
+          // we require `mode` to be set. The "Start Camera" button in the selector
+          // just ensures they have clicked something, but since we set it instantly
+          // we don't strictly need `onStart` to do anything other than trigger 
+          // a visual transition if we wanted one.
+        }}
       />
     );
   }
 
-  // 3. Live Preview & Controls
-  return (
-    <main className="relative h-screen w-full overflow-hidden bg-black">
-      <CameraPreview stream={activeStream} facingMode={facingMode} />
-      
-      <FlashOverlay isActive={flashActive} />
-      
-      <CountdownOverlay value={countdownValue} />
-      
-      <CameraControls
-        onCapture={startCountdown}
-        onSwitchCamera={toggleFacingMode}
-        hasMultipleCameras={hasMultipleCameras}
-        activeCountdown={activeCountdown}
-        onToggleCountdown={toggleCountdown}
-        isCapturing={isCapturing}
+  const activeConfig = MODE_CONFIGS[mode];
+
+  // 2. Result Preview (if all required photos are captured)
+  if (capturedPhotos.length >= activeConfig.requiredPhotos) {
+    return (
+      <ResultPreview 
+        photos={capturedPhotos} 
+        config={activeConfig} 
+        onRetakeAll={handleRetakeAll} 
+        onBack={() => {
+          // If we want to return to the camera while keeping photos (unlikely), we wouldn't clear photos.
+          // In this case, "Back" from preview means they changed their mind about the layout or want to start over.
+          setMode(null);
+          clearPhotos();
+        }}
       />
-    </main>
+    );
+  }
+
+  // 3. Live Photo Stage
+  return (
+    <PhotoStage 
+      config={activeConfig}
+      onPhotoCaptured={handlePhotoCaptured}
+      currentPhotoCount={capturedPhotos.length}
+      onBack={() => setMode(null)}
+    />
   );
 }

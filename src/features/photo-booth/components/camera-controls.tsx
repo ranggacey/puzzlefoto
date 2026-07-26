@@ -1,4 +1,4 @@
-import { SwitchCamera, Maximize, Minimize, Settings2, Timer } from "lucide-react";
+import { SwitchCamera, Maximize, Minimize, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { fullscreenService } from "../services/fullscreen.service";
@@ -77,15 +77,6 @@ export function CameraControls({
             <SwitchCamera className="h-5 w-5" />
           </button>
         )}
-        
-        {/* Placeholder for future settings (e.g. Resolution, Background) */}
-        <button
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-muted-foreground backdrop-blur-md transition-colors hover:bg-background/80 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Settings"
-          title="Settings (Coming soon)"
-        >
-          <Settings2 className="h-5 w-5" />
-        </button>
       </div>
 
       {/* Primary Shutter Button */}

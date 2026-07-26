@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { CaptureMode, LoadingState } from "@/types";
+import type { LoadingState, CaptureMode, CapturedPhoto } from "@/types";
 import type { CameraDevice, PermissionStatus } from "@/features/photo-booth/types/camera";
 
 // ============================================================
@@ -58,28 +58,27 @@ export const useCameraStore = create<CameraState>((set) => ({
 // ============================================================
 
 interface CaptureState {
-  mode: CaptureMode;
-  countdown: number | null;
+  mode: CaptureMode | null;
   isCapturing: boolean;
-  capturedImage: string | null;
+  capturedPhotos: CapturedPhoto[];
   processingState: LoadingState;
   backgroundUrl: string | null;
 
   // Actions
-  setMode: (mode: CaptureMode) => void;
-  setCountdown: (value: number | null) => void;
+  setMode: (mode: CaptureMode | null) => void;
   setCapturing: (capturing: boolean) => void;
-  setCapturedImage: (image: string | null) => void;
+  addPhoto: (photo: CapturedPhoto) => void;
+  removePhoto: (id: string) => void;
+  clearPhotos: () => void;
   setProcessingState: (state: LoadingState) => void;
   setBackgroundUrl: (url: string | null) => void;
   reset: () => void;
 }
 
 const initialCaptureState = {
-  mode: "original" as const,
-  countdown: null,
+  mode: null,
   isCapturing: false,
-  capturedImage: null,
+  capturedPhotos: [],
   processingState: "idle" as const,
   backgroundUrl: null,
 };
@@ -88,9 +87,12 @@ export const useCaptureStore = create<CaptureState>((set) => ({
   ...initialCaptureState,
 
   setMode: (mode) => set({ mode }),
-  setCountdown: (value) => set({ countdown: value }),
   setCapturing: (capturing) => set({ isCapturing: capturing }),
-  setCapturedImage: (image) => set({ capturedImage: image }),
+  addPhoto: (photo) => set((state) => ({ capturedPhotos: [...state.capturedPhotos, photo] })),
+  removePhoto: (id) => set((state) => ({ 
+    capturedPhotos: state.capturedPhotos.filter((p) => p.id !== id) 
+  })),
+  clearPhotos: () => set({ capturedPhotos: [] }),
   setProcessingState: (state) => set({ processingState: state }),
   setBackgroundUrl: (url) => set({ backgroundUrl: url }),
   reset: () => set(initialCaptureState),
