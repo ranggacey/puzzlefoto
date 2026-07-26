@@ -132,3 +132,14 @@ The architecture is designed to accommodate the upcoming Sprints without massive
 - **Sprint 4 (Background Studio)**: Integrates directly into the flow *after* `Photo Booth` completes its required captures. It will consume the `capturedPhotos` array from Zustand, process them, and output modified images without touching the Camera Engine.
 - **Sprint 5 (Puzzle Engine)**: Mounts as an entirely separate full-screen interactive route. Consumes finalized images and generates the canvas game board.
 - **Sprint 6 (Hand Tracking)**: Will act as a transparent overlay/listener. `HandTrackingProvider` will intercept webcam frames, run MediaPipe, and dispatch virtual pointer events that the `Puzzle Engine` natively reacts to, requiring zero complex coupling between the two systems.
+
+---
+
+## 11. Architecture Evolution Policy
+
+Future development must prioritize preserving the architecture over implementing features quickly.
+
+- A feature should adapt to the architecture.
+- The architecture should not be redesigned to accommodate a single feature unless a clear architectural limitation has been identified.
+- Temporary shortcuts should be avoided.
+- When architectural changes are necessary, they must be proposed explicitly before implementation.
