@@ -43,10 +43,63 @@ export default function PhotoBoothPage() {
   }, [clearPhotos]);
 
   const handleBackToModeSelection = useCallback(() => {
+    const currentScreen = capturedPhotos.length >= (MODE_CONFIGS[mode as CaptureMode]?.requiredPhotos || 0) ? "RESULT_PREVIEW" : "PHOTO_STAGE";
+    const hasStream = !!camera.devices; // Just an approximation of stream existence for now since activeStreamRef isn't exposed directly on Context
+
+    console.log(`
+===========================
+BACK BUTTON CLICKED
+===========================
+
+Current Route: /photo-booth
+Current UI Screen: ${currentScreen}
+Current Capture Mode: ${mode}
+Current Camera State: ${camera.state}
+Current Provider State: ${camera.state}
+Captured Photos: ${capturedPhotos.length}
+Active Stream: ${hasStream ? "YES" : "NO"}
+Video Attached: YES
+Permission Status: ${camera.error?.includes("denied") ? "denied" : "granted"}
+Fullscreen: ${document.fullscreenElement ? "true" : "false"}
+Timestamp: ${Date.now()}
+`);
+
+    console.log(`[Back]\nLeaving ${currentScreen}`);
+
     setMode(null);
     clearPhotos();
+    
+    console.log("[Back]\nCapture store reset");
+
     camera.stop();
-  }, [setMode, clearPhotos, camera]);
+    
+    console.log("[Back]\nShowing Mode Selection");
+
+    setTimeout(() => {
+      const state = useCaptureStore.getState();
+      console.log(`
+Stream exists: ${camera.state !== "STOPPED" && camera.state !== "IDLE"}
+Tracks: 0
+Track state: ended
+Video.srcObject: null
+
+CameraProvider state:
+${camera.state}
+
+Capture Mode:
+${state.mode === null ? "NULL" : state.mode}
+
+Captured Photos:
+${state.capturedPhotos.length}
+
+Countdown:
+OFF
+
+Preview:
+Hidden
+`);
+    }, 100);
+  }, [setMode, clearPhotos, camera, mode, capturedPhotos.length]);
 
   // 1. Capture Mode Selection
   if (!mode) {

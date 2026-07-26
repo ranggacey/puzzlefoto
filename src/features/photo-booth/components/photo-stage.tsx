@@ -117,7 +117,7 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
       
       <button 
         onClick={onBack}
-        className="absolute left-6 top-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute left-6 top-24 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Back to Mode Selection"
       >
         <ArrowLeft className="h-5 w-5" />
