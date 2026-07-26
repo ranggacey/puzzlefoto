@@ -34,11 +34,11 @@ export function PuzzleCameraProvider({ children }: { children: React.ReactNode }
     setError(null);
     
     try {
-      // Clean start
+      // Idempotent start: do not re-initialize if we already have an active stream
       if (activeStreamRef.current) {
-        cameraDebug("[PuzzleCamera] clearing existing stream before start");
-        cameraService.stopStream(activeStreamRef.current);
-        activeStreamRef.current = null;
+        cameraDebug("[PuzzleCamera] start() called but stream already exists. Skipping.");
+        setCameraState("READY");
+        return;
       }
 
       startCameraTimer("startToReady");
@@ -113,46 +113,54 @@ export function PuzzleCameraProvider({ children }: { children: React.ReactNode }
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    start();
     return () => {
       stop();
     };
-  }, [stop]);
+  }, [start, stop]);
+
+  const capture = useCallback(async () => {
+    if (!videoRef.current) return null;
+    
+    try {
+      const dataUrl = await captureService.captureFrame(videoRef.current, {
+        format: "dataUrl",
+        mirror: true
+      });
+      
+      if (!dataUrl || typeof dataUrl !== "string") {
+        throw new Error("Failed to capture valid image data");
+      }
+      
+      return dataUrl;
+    } catch (err) {
+      cameraWarn("[PuzzleCamera] capture failed:", err);
+      return null;
+    }
+  }, []);
+
+  const switchCamera = useCallback(() => {}, []);
+
+  const contextValue = React.useMemo(() => ({
+    state,
+    devices: [],
+    deviceId: null,
+    facingMode: "user" as const,
+    error,
+    start,
+    stop,
+    restart,
+    capture,
+    switchCamera,
+    attachVideo
+  }), [state, error, start, stop, restart, capture, switchCamera, attachVideo]);
 
   // We mock out irrelevant context methods for Puzzle (capture, switchCamera)
   // to satisfy CameraContextType since HandTracking only needs the stream, 
   // but if needed we can define a dedicated PuzzleCameraContextType later.
   return (
-    <PuzzleCameraContext.Provider value={{
-      state,
-      devices: [],
-      deviceId: null,
-      facingMode: "user",
-      error,
-      start,
-      stop,
-      restart,
-      capture: async () => {
-        if (!videoRef.current) return null;
-        
-        try {
-          const dataUrl = await captureService.captureFrame(videoRef.current, {
-            format: "dataUrl",
-            mirror: true
-          });
-          
-          if (!dataUrl || typeof dataUrl !== "string") {
-            throw new Error("Failed to capture valid image data");
-          }
-          
-          return dataUrl;
-        } catch (err) {
-          cameraWarn("[PuzzleCamera] capture failed:", err);
-          return null;
-        }
-      },
-      switchCamera: () => {},
-      attachVideo
-    }}>
+    <PuzzleCameraContext.Provider value={contextValue}>
       {children}
     </PuzzleCameraContext.Provider>
   );

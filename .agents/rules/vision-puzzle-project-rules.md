@@ -71,15 +71,25 @@ Separate responsibilities clearly between:
 
 # Documentation Synchronization
 
-Project documentation is the authoritative source of truth.
+Project documentation is part of the implementation.
 
-Before implementing work that affects architecture, workflow, roadmap, public APIs, state ownership, or engineering decisions:
+Implementation and documentation must evolve together.
 
-- identify which documentation files are affected;
-- update those documents first (or within the same task);
-- keep implementation and documentation synchronized.
+Whenever implementation changes:
 
-Never leave the codebase in a state where documentation no longer reflects the implementation.
+- architecture
+- folder structure
+- routing
+- public APIs
+- state ownership
+- engineering workflow
+- development process
+
+identify the affected documentation before coding.
+
+Documentation must never lag behind implementation.
+
+Outdated documentation is considered a project defect.
 
 ---
 
@@ -87,42 +97,40 @@ Never leave the codebase in a state where documentation no longer reflects the i
 
 Implement features incrementally.
 
-Complete one sprint before starting another.
+Complete one Sprint before starting another.
 
-Keep changes focused on the requested scope.
+Keep changes focused on the approved scope.
 
 Avoid modifying unrelated files.
 
-Avoid large refactors unless explicitly requested.
+Avoid speculative implementations.
 
-When implementing a feature:
+Avoid large refactors unless explicitly approved.
 
-- finish the implementation completely
-- remove temporary code
-- avoid unfinished placeholders
-- avoid unnecessary comments explaining obvious code
+Every implementation should be production-ready.
 
-Production-quality implementation is expected.
+Do not leave:
+
+- TODO placeholders
+- temporary implementations
+- commented-out code
+- unfinished logic
 
 ---
 
-# Development Workflow
+# Sprint Workflow
 
-Development follows a milestone-based workflow.
+Development follows milestone-based Sprints.
 
-Each major Sprint owns a dedicated integration branch.
+Every major Sprint owns one integration branch.
 
-Every implementation Sprint may be divided into multiple sub-sprints.
+Sub-Sprints are merged into their parent Sprint branch.
 
-Sub-sprints must always branch from their parent Sprint branch.
+Only completed Sprint branches are merged into `main`.
 
-They must never branch directly from `main`.
+Every Sprint and Sub-Sprint must have exactly one primary objective.
 
-Development is sequential.
-
-Complete the current sub-sprint, merge it into the parent Sprint branch, and verify the repository before starting the next sub-sprint.
-
-Do not work on multiple future sub-sprints simultaneously.
+Do not implement functionality belonging to future Sprints.
 
 ---
 
@@ -132,14 +140,36 @@ Before implementing any Sprint or Sub-Sprint:
 
 1. Verify the current Git branch.
 2. Verify `git status` is clean.
-3. If the required branch does not exist, create it.
-4. Confirm the active branch before modifying code.
+3. Verify the correct parent branch exists.
+4. Create the required Sprint/Sub-Sprint branch if it does not already exist.
+5. Switch to the new branch.
+6. Confirm the active branch before modifying code.
 
-Never begin implementation until the repository state has been verified.
+Never implement work on the wrong branch.
 
-All completed sub-sprints must be merged back into their parent Sprint branch.
+Never implement directly on `main`.
 
-Only completed Sprint branches may be merged into `main`.
+Every Sprint and every Sub-Sprint must use its own dedicated Git branch.
+
+Example:
+
+main
+↓
+feature/sprint-5-foundation
+↓
+feature/sprint-5.1-camera-lifecycle
+↓
+merge
+↓
+feature/sprint-5-foundation
+↓
+feature/sprint-5.2-hand-tracking
+↓
+merge
+↓
+feature/sprint-5-foundation
+↓
+main
 
 ---
 
@@ -149,58 +179,43 @@ Write clean, maintainable, production-ready code.
 
 Always use strict TypeScript.
 
-Avoid using `any` unless there is no reasonable alternative.
+Avoid using `any`.
 
-Prefer explicit types.
+Prefer explicit typing.
 
 Keep functions focused.
 
-Keep components small and reusable.
+Keep components small.
 
 Extract reusable logic into:
 
-- custom hooks
+- hooks
 - services
-- utility functions
+- utilities
 
 Remove dead code immediately.
-
-Avoid duplicated logic.
-
-Follow consistent naming conventions.
 
 ---
 
 # UI Development
 
-Follow the approved Design System.
+Follow the Design System.
 
 Use semantic design tokens.
 
-Never hardcode colors when semantic tokens already exist.
-
 Support:
 
-- Light Theme
-- Dark Theme
-- System Theme
+- Light
+- Dark
+- System
 
-Maintain visual consistency across the application.
+Maintain visual consistency.
 
 Mobile-first responsive design is required.
-
-Ensure layouts work correctly on:
-
-- Mobile
-- Tablet
-- Laptop
-- Desktop
 
 ---
 
 # User Experience
-
-User experience is more important than visual complexity.
 
 Interactions should feel:
 
@@ -209,23 +224,17 @@ Interactions should feel:
 - intuitive
 - predictable
 
-Animations should support usability rather than distract users.
+Animations should improve usability.
 
-Avoid unnecessary visual effects.
-
-Respect the approved UX defined in the PDS.
+Respect the approved UX.
 
 ---
 
 # Motion
 
-Use Motion for meaningful interactions only.
+Prefer CSS animations where appropriate.
 
-Animations should feel smooth and intentional.
-
-Avoid excessive animations.
-
-Prefer subtle transitions.
+Use Motion only for meaningful interactions.
 
 Support reduced-motion preferences.
 
@@ -233,29 +242,25 @@ Support reduced-motion preferences.
 
 # Accessibility
 
-Accessibility is a first-class requirement.
+Accessibility is mandatory.
 
-Always use semantic HTML.
+Use semantic HTML.
 
 Support keyboard navigation.
 
-Provide visible focus states.
+Maintain focus visibility.
 
-Use ARIA attributes where appropriate.
+Use ARIA when appropriate.
 
-Maintain sufficient color contrast.
-
-Do not sacrifice accessibility for aesthetics.
+Maintain sufficient contrast.
 
 ---
 
 # State Management
 
-Use local component state whenever possible.
+Prefer local state.
 
-Use Zustand only when state must be shared.
-
-Avoid unnecessary global state.
+Use Zustand only for shared state.
 
 Keep stores focused on a single responsibility.
 
@@ -263,40 +268,30 @@ Keep stores focused on a single responsibility.
 
 # Performance
 
-Optimize for responsiveness.
+Optimize responsiveness.
 
-Avoid unnecessary re-renders.
+Avoid unnecessary renders.
 
 Memoize only when beneficial.
 
-Prefer CSS animations over JavaScript animations whenever possible.
-
 Lazy-load heavy modules.
 
-Optimize images and assets.
-
-Keep interactions smooth.
-
-Target approximately 60 FPS where feasible.
+Target approximately 60 FPS.
 
 ---
 
 # Error Handling
 
-Applications should fail gracefully.
+Fail gracefully.
 
-Never assume:
+Never assume availability of:
 
-- camera access exists
-- MediaPipe is available
-- AI processing succeeds
-- browser APIs are supported
+- camera
+- browser APIs
+- AI models
+- MediaPipe
 
-Always provide reasonable fallback behavior.
-
-Explain errors clearly to users.
-
-Never leave the application in a broken state.
+Always provide fallback behavior.
 
 ---
 
@@ -306,47 +301,37 @@ Never leave the application in a broken state.
 
 Camera preview should start quickly.
 
-Countdown should feel responsive.
+Background processing must never block the UI.
 
-Flash effect should feel natural.
+Users must always be able to retake photos.
 
-Background processing should never block the UI.
-
-Always allow users to retake photos.
+---
 
 ## Puzzle
 
-Puzzle interaction should prioritize smoothness over visual complexity.
+Puzzle interaction should prioritize smoothness.
 
-Dragging must feel precise.
+Gameplay state must remain independent from camera lifecycle.
 
-Snap detection should feel satisfying.
+Camera ownership belongs exclusively to PuzzleCameraProvider.
 
-Difficulty should affect gameplay without creating frustration.
+Scene transitions must never restart the camera.
+
+---
 
 ## Hand Tracking
 
-Hand tracking should degrade gracefully.
+Hand tracking must consume the existing MediaStream.
 
-Temporary tracking loss must not break gameplay.
+Never acquire a second camera stream.
 
-Gesture feedback should always be visible.
-
-Pointer movement should feel stable.
-
-Avoid jitter whenever possible.
+Temporary tracking loss must not restart gameplay.
 
 ---
 
 # AI Collaboration
 
-This project may be developed by multiple AI models.
-
-Maintain consistency with the existing codebase.
-
-Do not rewrite unrelated code.
-
-Do not replace existing implementations simply because another solution exists.
+Multiple AI models may contribute to this project.
 
 Preserve:
 
@@ -356,77 +341,121 @@ Preserve:
 - coding style
 - component patterns
 
-Continue the project instead of restarting it.
+Extend existing implementations.
+
+Do not rewrite unrelated code.
 
 ---
 
 # Communication
 
-When implementation conflicts with the specification:
+If implementation conflicts with documentation:
 
 Stop.
 
 Explain the conflict.
 
-Propose possible solutions.
+Propose solutions.
 
-Wait for approval before changing the specification.
+Wait for approval.
 
-Never silently change product behavior.
+Never silently modify project behavior.
 
 ---
 
 # Architecture Governance
 
-Architecture is treated as a contractual specification.
+Architecture is contractual.
 
-Whenever implementation requires an architectural change:
+Architecture changes require:
 
-1. Update the architecture documentation.
-2. Explain the impact.
-3. Wait for approval.
-4. Implement the code.
+1. Update ARCHITECTURE_FREEZE.md
+2. Explain the impact
+3. Obtain approval
+4. Implement
 
-Never silently change architecture.
+Architecture must never drift silently.
 
-Documentation must evolve together with implementation.
+---
+
+# Documentation Deliverables
+
+Every completed Sprint must update project documentation.
+
+Required updates:
+
+## CHANGELOG
+
+Append the completed Sprint to:
+
+docs/CHANGELOG.md
+
+Include:
+
+- completed scope
+- implementation summary
+- architectural changes
+- breaking changes (if any)
+
+---
+
+## Sprint Documentation
+
+Create or update:
+
+docs/SPRINTS/sprint-X.Y.md
+
+Include:
+
+- Objective
+- Scope
+- Architecture Decisions
+- Files Created
+- Files Modified
+- State Ownership
+- Public APIs
+- Verification Results
+- Known Limitations
+- Out-of-Scope
+- Next Sprint Prerequisites
+
+---
+
+## ADR
+
+If architecture changed:
+
+Update:
+
+docs/DECISIONS.md
+
+Document:
+
+- decision
+- rationale
+- consequences
+
+Do not create an ADR when architecture did not change.
 
 ---
 
 # Definition of Done
 
-A sprint is considered complete only if:
+A Sprint is complete only if:
 
-- Requested scope is fully implemented
-- TypeScript has no errors
+- Requested scope is implemented
+- TypeScript passes
 - ESLint passes
 - Production build succeeds
-- No obvious runtime errors exist
-- Responsive behavior has been verified
-- Light/Dark/System themes work correctly (if applicable)
-- Accessibility has not been degraded
-- Code follows the established architecture
+- Manual regression testing completed
+- Responsive behavior verified
+- Accessibility preserved
+- Architecture preserved
+- CHANGELOG updated
+- Sprint documentation updated
+- ADR updated (if architecture changed)
 
-If any requirement is not satisfied, the sprint is not complete.
-
----
-
-# Documentation Requirements
-
-Documentation is part of the deliverable.
-
-If a Sprint changes any of the following:
-
-- architecture
-- folder structure
-- routing
-- public APIs
-- state ownership
-- development workflow
-
-the corresponding documentation must be updated before the Sprint can be considered complete.
-
-Outdated documentation is considered a project defect.
+A Sprint that lacks documentation is considered incomplete.
 
 ---
 
@@ -441,26 +470,10 @@ Build software that is:
 - Accessible
 - Performant
 
-Prioritize long-term quality over short-term speed.
+Favor long-term quality over short-term speed.
 
 Consistency is more valuable than cleverness.
 
-Always implement exactly what is requested.
+Implement exactly the approved scope.
 
-Do not redesign the product unless explicitly instructed.
-
----
-
-# Sprint Discipline
-
-Each Sprint and Sub-Sprint must have exactly one primary objective.
-
-Avoid implementing future Sprint functionality.
-
-Avoid speculative implementations.
-
-If functionality belongs to a future Sprint, stop and ask for approval before implementing it.
-
-Implement only the approved scope.
-
----
+Never redesign the product without explicit approval.

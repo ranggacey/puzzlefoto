@@ -6,19 +6,18 @@ import { cameraDebug, endCameraTimer } from "@/features/photo-booth/utils/camera
 
 export function LiveBackground() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const camera = usePuzzleCamera();
+  const { attachVideo, state, facingMode } = usePuzzleCamera();
 
   useEffect(() => {
     cameraDebug("[LiveBackground] mounted");
-    camera.start();
-    // Cleanup is handled by the PuzzleCameraProvider
-  }, [camera]);
+    // Camera is automatically started by PuzzleCameraProvider
+  }, []);
 
   useEffect(() => {
     if (videoRef.current) {
-      camera.attachVideo(videoRef.current);
+      attachVideo(videoRef.current);
     }
-  }, [camera]);
+  }, [attachVideo]);
 
   const handlePlaying = () => {
     endCameraTimer("videoPlay");
@@ -34,8 +33,8 @@ export function LiveBackground() {
         muted
         onPlaying={handlePlaying}
         className={`h-full w-full object-cover transition-opacity duration-700 ${
-          camera.state === "READY" ? "opacity-100" : "opacity-0"
-        } ${camera.facingMode === "user" ? "-scale-x-100" : ""}`}
+          state === "READY" ? "opacity-100" : "opacity-0"
+        } ${facingMode === "user" ? "-scale-x-100" : ""}`}
       />
       {/* Dimming overlay so foreground stands out */}
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
