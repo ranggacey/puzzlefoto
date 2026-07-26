@@ -4,11 +4,16 @@ import { usePuzzleStore } from "@/store/puzzle-store";
 import { useRouter } from "next/navigation";
 
 export function PuzzleCompletedOverlay() {
-  const { moveCount, difficulty, restartPuzzle, reset } = usePuzzleStore();
+  const { moveCount, difficulty, elapsedTime, restartPuzzle, reset } = usePuzzleStore();
   const router = useRouter();
 
-  // Placeholder time until timer is fully implemented
-  const placeholderTime = "00:00"; 
+  const formatTime = (totalSeconds: number) => {
+    const m = Math.floor(totalSeconds / 60).toString().padStart(2, "0");
+    const s = (totalSeconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
+
+  const formattedTime = formatTime(elapsedTime);
 
   const handleNewPhoto = () => {
     reset();
@@ -45,7 +50,7 @@ export function PuzzleCompletedOverlay() {
         
         <div className="w-full flex justify-between px-4 mb-8 text-white/80">
           <span className="font-medium">Time</span>
-          <span className="text-white font-semibold">{placeholderTime}</span>
+          <span className="text-white font-semibold">{formattedTime}</span>
         </div>
         
         <div className="w-full flex flex-col gap-3">

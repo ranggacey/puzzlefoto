@@ -1,3 +1,4 @@
+import React from "react";
 import { FullscreenLayout } from "@/components/layout/fullscreen-layout";
 import { usePuzzleStore } from "@/store/puzzle-store";
 import { usePuzzleCameraContext } from "../providers/puzzle-camera-provider";
@@ -12,8 +13,21 @@ import { PuzzleCompletedOverlay } from "./puzzle-completed-overlay";
 import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
 
 export function PuzzleExperience() {
-  const { scene, sourceImage, pieces, difficulty, setScene, setSourceImage, setDifficulty, generatePuzzle, reset } = usePuzzleStore();
+  const { scene, sourceImage, pieces, difficulty, isTimerRunning, startedAt, setScene, setSourceImage, setDifficulty, generatePuzzle, reset, setElapsedTime } = usePuzzleStore();
   const camera = usePuzzleCameraContext();
+
+  // Timer Effect
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTimerRunning && startedAt) {
+      interval = setInterval(() => {
+        setElapsedTime(Math.floor((Date.now() - startedAt) / 1000));
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isTimerRunning, startedAt, setElapsedTime]);
 
   const handleCapture = async () => {
     setScene("capturing");

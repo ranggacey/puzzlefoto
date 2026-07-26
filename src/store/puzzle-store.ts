@@ -104,6 +104,8 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
         moveCount: 0,
         isComplete: false,
         scene: "gameplay",
+        isTimerRunning: true,
+        elapsedTime: 0,
       });
     } catch (err) {
       console.error("Failed to generate puzzle:", err);
