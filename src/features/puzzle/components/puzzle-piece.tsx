@@ -83,8 +83,8 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
         y: isDragging ? dragState.dragDeltaY + InteractionConfig.dragOffsetY : 0,
       }}
       transition={{
-        x: { type: "spring", stiffness: 500, damping: 50 },
-        y: { type: "spring", stiffness: 500, damping: 50 },
+        x: { type: "spring", stiffness: isDragging ? 100 : 500, damping: isDragging ? 20 : 50 },
+        y: { type: "spring", stiffness: isDragging ? 100 : 500, damping: isDragging ? 20 : 50 },
         layout: { type: "spring", stiffness: 300, damping: 30 }
       }}
       whileHover={!piece.isLocked && !isDragging ? "hover" : undefined}

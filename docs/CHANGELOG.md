@@ -4,6 +4,17 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.7] - AR-Style Interaction Layer
+- **New Feature**: Introduced `InteractionAssistService` to act as a dedicated AR interaction layer decoupling hand-tracking from Puzzle Engine.
+- **Enhancement**: Pointer position calculates from the midpoint between thumb and index finger during a pinch for natural grabbing.
+- **Enhancement**: Implemented progressive magnetic attraction to gracefully pull the pointer towards candidate pieces based on distance.
+- **Enhancement**: Smart piece selection uses an 80px interaction radius and hover hysteresis for extreme stability.
+- **Enhancement**: Added an adaptive snap drop radius of 40px to assist piece placement.
+- **Enhancement**: `PointerOverlay` updated with idle, hover, and grab visual states, including a new dashed AR connection line to the locked target.
+- **Enhancement**: `PuzzlePiece` now uses a softer Framer Motion spring configuration during drags to simulate a physical `followStrength`.
+
+---
+
 ## [Sprint 5.6.2] - Hand Tracking Stability Refinement
 - Implemented **Adaptive Pointer Smoothing** in `PointerSmoothing`, applying dynamic easing (`alpha` between `0.45` and `0.82`) based on cursor velocity to eliminate aiming tremor while maintaining responsiveness.
 - Added `HandTrackingConfidenceFilter` to intercept raw MediaPipe outputs and discard impossible coordinate jumps (spikes) before they disrupt the pointer.

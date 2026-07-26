@@ -7,7 +7,7 @@ import { usePuzzleStore } from "@/store/puzzle-store";
 import { motion } from "motion/react";
 import { useUnifiedDrag } from "../hooks/use-unified-drag";
 import { useHandTracking } from "@/features/hand-tracking/providers/hand-tracking-provider";
-import { InteractionConfig } from "@/features/hand-tracking/constants/interaction-config";
+import { interactionAssist } from "@/features/hand-tracking/services/interaction-assist";
 
 interface PuzzleBoardProps {
   pieces: PuzzlePieceType[];
@@ -27,7 +27,14 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
       const rect = boardRef.current.getBoundingClientRect();
       const x = clientX - rect.left;
       const y = clientY - rect.top;
+      // Check adaptive drop target first
+      const adaptiveTarget = interactionAssist.getAdaptiveDropTarget(clientX, clientY);
+      if (adaptiveTarget !== null) {
+        movePieceToSlot(pieceId, adaptiveTarget);
+        return;
+      }
 
+      // Fallback
       if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
         return;
       }
@@ -52,45 +59,12 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
 
   // Register with Hand Tracking
   React.useEffect(() => {
+    interactionAssist.updateContext(() => boardRef.current?.getBoundingClientRect() ?? null, pieces, difficulty);
+    
     registerGestureCallbacks(
-      feedSyntheticEvent,
+      (event) => feedSyntheticEvent(interactionAssist.processEvent(event)),
       {
-        hitTest: (x, y) => {
-          if (!boardRef.current) return undefined;
-          
-          const rect = boardRef.current.getBoundingClientRect();
-          const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
-          const slotWidth = rect.width / columns;
-          const slotHeight = rect.height / rows;
-          
-          const px = x * rect.width;
-          const py = y * rect.height;
-
-          let closestPieceId: string | undefined = undefined;
-          let minDistance = Infinity;
-
-          for (const piece of pieces) {
-            if (piece.isLocked) continue;
-
-            const col = piece.currentSlotIndex % columns;
-            const row = Math.floor(piece.currentSlotIndex / columns);
-            
-            const pieceCenterX = (col + 0.5) * slotWidth;
-            const pieceCenterY = (row + 0.5) * slotHeight;
-
-            // Distance to edge
-            const dx = Math.max(0, Math.abs(px - pieceCenterX) - slotWidth / 2);
-            const dy = Math.max(0, Math.abs(py - pieceCenterY) - slotHeight / 2);
-            const distanceToEdge = Math.sqrt(dx * dx + dy * dy);
-
-            if (distanceToEdge <= InteractionConfig.hoverRadius && distanceToEdge < minDistance) {
-              minDistance = distanceToEdge;
-              closestPieceId = piece.id;
-            }
-          }
-          
-          return closestPieceId;
-        }
+        hitTest: (x, y) => interactionAssist.hitTest(x, y)
       }
     );
   }, [registerGestureCallbacks, feedSyntheticEvent, difficulty, pieces]);
@@ -99,17 +73,22 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
 
   let previewSlotIndex: number | null = null;
   if (dragState.isDragging && dragState.boardRect) {
-    const rect = dragState.boardRect;
-    const x = dragState.currentX - rect.left;
-    const y = dragState.currentY - rect.top;
-
-    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
-      const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
-      const col = Math.floor((x / rect.width) * columns);
-      const row = Math.floor((y / rect.height) * rows);
-      const safeCol = Math.max(0, Math.min(col, columns - 1));
-      const safeRow = Math.max(0, Math.min(row, rows - 1));
-      previewSlotIndex = safeRow * columns + safeCol;
+    const adaptiveTarget = interactionAssist.getAdaptiveDropTarget(dragState.currentX, dragState.currentY);
+    if (adaptiveTarget !== null) {
+      previewSlotIndex = adaptiveTarget;
+    } else {
+      const rect = dragState.boardRect;
+      const x = dragState.currentX - rect.left;
+      const y = dragState.currentY - rect.top;
+  
+      if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+        const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
+        const col = Math.floor((x / rect.width) * columns);
+        const row = Math.floor((y / rect.height) * rows);
+        const safeCol = Math.max(0, Math.min(col, columns - 1));
+        const safeRow = Math.max(0, Math.min(row, rows - 1));
+        previewSlotIndex = safeRow * columns + safeCol;
+      }
     }
   }
 

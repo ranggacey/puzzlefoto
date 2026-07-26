@@ -26,6 +26,10 @@ export class GestureRecognizer {
     this.hitTester = hitTester;
   }
 
+  getIsPinching(): boolean {
+    return this.state.pinching;
+  }
+
   process(handState: HandState, timestamp: number): GestureState {
     if (!handState.detected || handState.landmarks.length < 9) {
       if (this.state.pinching) {

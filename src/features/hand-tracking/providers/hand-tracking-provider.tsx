@@ -132,14 +132,21 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
             trackingDiagnostics.recordConfidence(confidence);
             trackingDiagnostics.recordTrackingRecovery();
             
-            // Index finger tip is landmark 8
+            // Smart Pointer Position
+            // Landmark 4: Thumb tip, Landmark 8: Index tip
             const indexFingertip = landmarks[8];
+            const thumbFingertip = landmarks[4];
             
-            // The results from mediapipe are normalized [0, 1] relative to the video feed.
-            // Since our video is mirrored via CSS (`scale-x-[-1]`), we must mirror the X coordinate 
-            // to match the screen visual.
-            const rawX = 1 - indexFingertip.x;
-            const rawY = indexFingertip.y;
+            const isPinching = gestureRecognizer.current.getIsPinching();
+            
+            let rawX, rawY;
+            if (isPinching) {
+              rawX = 1 - (indexFingertip.x + thumbFingertip.x) / 2;
+              rawY = (indexFingertip.y + thumbFingertip.y) / 2;
+            } else {
+              rawX = 1 - indexFingertip.x;
+              rawY = indexFingertip.y;
+            }
             
             const smoothed = pointerSmoothing.current.smooth(rawX, rawY);
 

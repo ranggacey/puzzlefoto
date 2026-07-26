@@ -3,11 +3,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useHandTracking } from "../providers/hand-tracking-provider";
-import { usePuzzleStore } from "@/store/puzzle-store";
-import { DIFFICULTY_PRESETS } from "@/features/puzzle/constants/puzzle-difficulty";
-import { InteractionConfig } from "../constants/interaction-config";
 import { useHandTrackingDiagnostics } from "../store/hand-tracking-diagnostics-store";
 import { FpsTracker } from "../services/fps-tracker";
+import { interactionAssist } from "../services/interaction-assist";
 
 interface TrailPoint {
   id: number;
@@ -21,9 +19,6 @@ export function PointerOverlay() {
   const [trail, setTrail] = useState<TrailPoint[]>([]);
   const [ripple, setRipple] = useState<{ id: number, x: number, y: number } | null>(null);
 
-  const pieces = usePuzzleStore(state => state.pieces);
-  const difficulty = usePuzzleStore(state => state.difficulty);
-  
   const renderFpsTracker = useRef(new FpsTracker());
 
   // Track Render FPS
@@ -88,27 +83,14 @@ export function PointerOverlay() {
 
   if (!isReady) return null;
 
-  // Calculate magnetic pointer
   let displayX = handState.pointer.x;
   let displayY = handState.pointer.y;
 
+  // Use InteractionAssistService to get the exact magnetic position matching the PuzzleEngine
   if (gestureState.hoveredPieceId) {
-    const piece = pieces.find(p => p.id === gestureState.hoveredPieceId);
-    if (piece && !piece.isLocked) {
-      const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
-      const col = piece.currentSlotIndex % columns;
-      const row = Math.floor(piece.currentSlotIndex / columns);
-      
-      const centerX = (col + 0.5) / columns;
-      const centerY = (row + 0.5) / rows;
-      
-      const pull = gestureState.pinching 
-        ? InteractionConfig.magneticStrengthGrabbed 
-        : InteractionConfig.magneticStrength;
-        
-      displayX = displayX + (centerX - displayX) * pull;
-      displayY = displayY + (centerY - displayY) * pull;
-    }
+    const magneticPos = interactionAssist.applyMagneticAttraction(displayX, displayY, gestureState.hoveredPieceId);
+    displayX = magneticPos.x;
+    displayY = magneticPos.y;
   }
 
   const cursorState = (gestureState.phase === "pinching" || gestureState.phase === "pinch-start") ? "grab" :
@@ -118,20 +100,18 @@ export function PointerOverlay() {
   let blurClasses = "rounded-full bg-cyan-400/50 blur-md absolute inset-0 transition-all duration-300 ease-out ";
   
   if (cursorState === "idle") {
-    // Tailwind dynamic classes like w-[24px] will only work if safelisted or parsed.
-    // Instead we'll use inline styles for the exact dimensions, and classes for the rest.
-    cursorClasses += "shadow-[0_0_10px_rgba(255,255,255,0.8)]";
+    cursorClasses += "shadow-[0_0_10px_rgba(255,255,255,0.4)]";
+    blurClasses += "opacity-50 scale-100";
   } else if (cursorState === "hover") {
-    cursorClasses += "bg-transparent border-2 border-white shadow-[0_0_15px_rgba(255,255,255,1)]";
-    blurClasses += "scale-125 bg-cyan-400/60";
+    cursorClasses += "bg-white border-[3px] border-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.8)] scale-110";
+    blurClasses += "scale-150 bg-cyan-400/80 animate-pulse";
   } else if (cursorState === "grab") {
-    cursorClasses += "shadow-[0_0_20px_rgba(255,255,255,1)]";
-    blurClasses += "scale-110 bg-cyan-400/70";
+    cursorClasses += "bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,1)] scale-125";
+    blurClasses += "scale-[1.7] bg-cyan-300/90";
   }
 
-  const currentSize = cursorState === "idle" ? InteractionConfig.pointerSize.idle :
-                      cursorState === "hover" ? InteractionConfig.pointerSize.hover :
-                      InteractionConfig.pointerSize.grab;
+  const currentSize = cursorState === "idle" ? 24 :
+                      cursorState === "hover" ? 32 : 40;
 
   return (
     <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
@@ -154,9 +134,38 @@ export function PointerOverlay() {
               );
             })}
 
+            {/* Locked Target Connection Line (AR Style) */}
+            <AnimatePresence>
+              {cursorState === "grab" && gestureState.hoveredPieceId && (
+                <motion.svg 
+                  className="absolute inset-0 pointer-events-none z-40 overflow-visible"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <motion.line
+                    x1={`${handState.pointer.x * 100}%`}
+                    y1={`${handState.pointer.y * 100}%`}
+                    x2={`${displayX * 100}%`}
+                    y2={`${displayY * 100}%`}
+                    stroke="rgba(34,211,238,0.5)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                    className="animate-[dash_1s_linear_infinite]"
+                  />
+                  <motion.circle 
+                    cx={`${displayX * 100}%`} 
+                    cy={`${displayY * 100}%`} 
+                    r="6" 
+                    fill="rgba(34,211,238,0.8)" 
+                  />
+                </motion.svg>
+              )}
+            </AnimatePresence>
+
             {/* Main Pointer */}
             <div
-              className="absolute pointer-events-none"
+              className="absolute pointer-events-none z-50"
               style={{
                 left: `${displayX * 100}%`,
                 top: `${displayY * 100}%`,
