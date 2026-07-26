@@ -13,6 +13,7 @@ import { PuzzleCompletedOverlay } from "./puzzle-completed-overlay";
 import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
 import { HandTrackingProvider } from "@/features/hand-tracking/providers/hand-tracking-provider";
 import { PointerOverlay } from "@/features/hand-tracking/components/pointer-overlay";
+import { HandTrackingDebugOverlay } from "@/features/hand-tracking/components/debug-overlay";
 
 export function PuzzleExperience() {
   const { scene, sourceImage, pieces, difficulty, isTimerRunning, startedAt, setScene, setSourceImage, setDifficulty, generatePuzzle, reset, setElapsedTime } = usePuzzleStore();
@@ -105,6 +106,9 @@ export function PuzzleExperience() {
         {scene === "completed" && (
           <PuzzleCompletedOverlay />
         )}
+        <React.Suspense fallback={null}>
+          <HandTrackingDebugOverlay />
+        </React.Suspense>
         </PuzzleStage>
       </HandTrackingProvider>
     </FullscreenLayout>

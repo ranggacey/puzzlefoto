@@ -1,6 +1,7 @@
 import type { HandState } from "../types/hand-state";
 import type { GestureState, HitTester, NormalizedPointerEvent } from "../types/gesture-state";
 import { InteractionConfig } from "../constants/interaction-config";
+import { trackingDiagnostics } from "./diagnostics-service";
 
 type EventCallback = (event: NormalizedPointerEvent) => void;
 
@@ -31,6 +32,7 @@ export class GestureRecognizer {
         if (this.trackingLostTime === 0) {
           this.trackingLostTime = timestamp;
         } else if (timestamp - this.trackingLostTime > InteractionConfig.dragPersistenceMs) {
+          trackingDiagnostics.recordAccidentalRelease();
           this.emit("pointerUp", this.lastPointer.x, this.lastPointer.y, this.state.hoveredPieceId);
           this.state = { hovering: false, pinching: false, phase: "idle" };
           this.isPhysicallyPinching = false;
@@ -76,12 +78,17 @@ export class GestureRecognizer {
       if (timestamp - this.pinchStartTime >= DEBOUNCE_MS) {
         pinching = true;
         phase = "pinch-start";
+        trackingDiagnostics.recordPinchStart();
+        if (hoveredPieceId) {
+          trackingDiagnostics.recordGrab(hoveredPieceId);
+        }
         this.emit("pointerDown", pointer.x, pointer.y, hoveredPieceId);
       }
     } else if (!this.isPhysicallyPinching && pinching) {
       if (timestamp - this.pinchEndTime >= InteractionConfig.releaseConfirmationMs) {
         pinching = false;
         phase = "pinch-end";
+        trackingDiagnostics.recordPinchEnd(this.state.hoveredPieceId);
         this.emit("pointerUp", pointer.x, pointer.y, hoveredPieceId);
       }
     } else if (pinching) {

@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useHandTracking } from "../providers/hand-tracking-provider";
 import { usePuzzleStore } from "@/store/puzzle-store";
 import { DIFFICULTY_PRESETS } from "@/features/puzzle/constants/puzzle-difficulty";
 import { InteractionConfig } from "../constants/interaction-config";
+import { useHandTrackingDiagnostics } from "../store/hand-tracking-diagnostics-store";
+import { FpsTracker } from "../services/fps-tracker";
 
 interface TrailPoint {
   id: number;
@@ -21,6 +23,32 @@ export function PointerOverlay() {
 
   const pieces = usePuzzleStore(state => state.pieces);
   const difficulty = usePuzzleStore(state => state.difficulty);
+  
+  const renderFpsTracker = useRef(new FpsTracker());
+
+  // Track Render FPS
+  useEffect(() => {
+    let animationFrameId: number;
+    
+    const renderLoop = (timestamp: number) => {
+      renderFpsTracker.current.recordFrame(timestamp);
+      
+      if (renderFpsTracker.current.shouldUpdateStore(timestamp)) {
+        const metrics = renderFpsTracker.current.getMetrics();
+        if (metrics) {
+          useHandTrackingDiagnostics.getState().setRenderFps(metrics);
+        }
+      }
+      
+      animationFrameId = requestAnimationFrame(renderLoop);
+    };
+    
+    animationFrameId = requestAnimationFrame(renderLoop);
+    
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   // Keep a motion trail
   useEffect(() => {

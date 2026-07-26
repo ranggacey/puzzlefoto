@@ -7,6 +7,9 @@ import { PointerSmoothing } from "../services/pointer-smoothing";
 import { GestureRecognizer } from "../services/gesture-recognizer";
 import { HandTrackingConfidenceFilter } from "../services/confidence-filter";
 import { InteractionConfig } from "../constants/interaction-config";
+import { useHandTrackingDiagnostics } from "../store/hand-tracking-diagnostics-store";
+import { FpsTracker } from "../services/fps-tracker";
+import { trackingDiagnostics } from "../services/diagnostics-service";
 import type { HandState } from "../types/hand-state";
 import type { GestureState, HitTester, NormalizedPointerEvent } from "../types/gesture-state";
 
@@ -44,6 +47,7 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
   const pointerSmoothing = useRef(new PointerSmoothing());
   const gestureRecognizer = useRef(new GestureRecognizer());
   const confidenceFilter = useRef(new HandTrackingConfidenceFilter());
+  const inferenceFpsTracker = useRef(new FpsTracker());
   const lastDetectedTime = useRef<number>(0);
   const lastValidState = useRef<HandState | null>(null);
 
@@ -85,12 +89,37 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
     // We need to wait for video to actually have dimensions
     if (video.videoWidth === 0 || video.videoHeight === 0) {
       // It might not be playing yet. Wait and retry or just let the loop handle it
+    } else {
+      const stream = video.srcObject as MediaStream;
+      if (stream) {
+        const track = stream.getVideoTracks()[0];
+        if (track) {
+          const settings = track.getSettings();
+          useHandTrackingDiagnostics.getState().setCameraDiagnostics({
+            width: settings.width || video.videoWidth,
+            height: settings.height || video.videoHeight,
+            frameRate: settings.frameRate || 0,
+            facingMode: settings.facingMode,
+            deviceId: settings.deviceId,
+          });
+        }
+      }
     }
 
     const loop = () => {
       // Ensure video is valid
       if (video.readyState >= 2 && video.videoWidth > 0 && video.videoHeight > 0) {
-        const result = handTrackingService.detectForVideo(video, performance.now());
+        const t0 = performance.now();
+        const result = handTrackingService.detectForVideo(video, t0);
+        const t1 = performance.now();
+        
+        inferenceFpsTracker.current.recordFrame(t1);
+        if (inferenceFpsTracker.current.shouldUpdateStore(t1)) {
+          const metrics = inferenceFpsTracker.current.getMetrics();
+          if (metrics) {
+            useHandTrackingDiagnostics.getState().setInferenceFps(metrics);
+          }
+        }
         
         if (result && result.landmarks && result.landmarks.length > 0) {
           const rawLandmarks = result.landmarks[0];
@@ -99,6 +128,9 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
           if (landmarks) {
             const handedness = (result.handedness[0]?.[0]?.categoryName === "Left" ? "left" : "right") as "left" | "right";
             const confidence = result.handedness[0]?.[0]?.score ?? 0;
+            
+            trackingDiagnostics.recordConfidence(confidence);
+            trackingDiagnostics.recordTrackingRecovery();
             
             // Index finger tip is landmark 8
             const indexFingertip = landmarks[8];
@@ -130,18 +162,18 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
             setGestureState(gState);
           } else {
             // Filter rejected this frame (impossible jump), handle as missing frame
-            handleMissingFrame();
+            handleMissingFrame("Impossible landmark jump (Confidence Filter)");
           }
         } else {
           // Tracking lost - check persistence
-          handleMissingFrame();
+          handleMissingFrame("No landmarks detected");
         }
       }
       
       animationFrameRef.current = requestAnimationFrame(loop);
     };
 
-    const handleMissingFrame = () => {
+    const handleMissingFrame = (reason: string) => {
       const timeSinceLastDetection = performance.now() - lastDetectedTime.current;
       
       if (lastValidState.current && timeSinceLastDetection < InteractionConfig.trackingPersistenceMs) {
@@ -151,6 +183,7 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
         setGestureState(gState);
       } else {
         // Persistence expired, actually lose tracking
+        trackingDiagnostics.recordTrackingLoss(reason);
         pointerSmoothing.current.reset();
         confidenceFilter.current.reset();
         const emptyState = { ...initialHandState, detected: false };

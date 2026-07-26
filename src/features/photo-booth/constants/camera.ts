@@ -1,9 +1,12 @@
 export const DEFAULT_CAMERA_CONSTRAINTS: MediaStreamConstraints = {
   video: {
-    width: { ideal: 1920 },
-    height: { ideal: 1080 },
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
     facingMode: "user",
-    frameRate: { ideal: 60 },
+    frameRate: {
+      ideal: 60,
+      max: 60,
+    },
   },
   audio: false,
 };
