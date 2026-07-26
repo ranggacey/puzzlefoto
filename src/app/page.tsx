@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { motion } from "motion/react";
 import {
-  ArrowRight,
   Camera,
   Wand2,
   Puzzle,
+  Hand,
 } from "lucide-react";
 import { Section } from "@/components/layout/section";
 import { PageHeader } from "@/components/layout/page-header";
@@ -17,90 +16,15 @@ import { RoadmapItem } from "@/components/shared/roadmap-item";
 import { features } from "@/constants/features";
 import { techStack, categoryColors } from "@/constants/tech-stack";
 import { roadmap } from "@/constants/roadmap";
+import { HeroPuzzle } from "@/features/landing/components/hero-puzzle";
+import { HeroPhotoBooth } from "@/features/landing/components/hero-photo-booth";
 import {
-  fadeIn,
-  fadeInUp,
   staggerContainer,
   staggerItem,
   viewportOnce,
 } from "@/lib/animations";
 
-// ============================================================
-// Hero Section
-// ============================================================
 
-function HeroSection() {
-  return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden">
-      {/* Background layers */}
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
-      <div className="pointer-events-none absolute inset-0 bg-radial-fade" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
-
-      <div className="relative z-10 mx-auto max-w-4xl px-6 pt-24 text-center">
-        <motion.div
-          variants={fadeIn}
-          initial="hidden"
-          animate="visible"
-        >
-          <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/80 px-4 py-1.5 text-xs font-medium text-muted-foreground backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Computer Vision Meets Interactive Design
-          </span>
-        </motion.div>
-
-        <motion.h1
-          variants={fadeInUp}
-          initial="hidden"
-          animate="visible"
-          className="mt-6 text-5xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl"
-        >
-          Capture. Transform.
-          <br />
-          <span className="text-gradient-blue">Play.</span>
-        </motion.h1>
-
-        <motion.p
-          variants={fadeInUp}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.1 }}
-          className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl"
-        >
-          Take AI-enhanced photos and transform them into interactive puzzles
-          controlled entirely by hand gestures. A showcase of modern web
-          technologies and computer vision.
-        </motion.p>
-
-        <motion.div
-          variants={fadeInUp}
-          initial="hidden"
-          animate="visible"
-          transition={{ delay: 0.2 }}
-          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-        >
-          <Link
-            href="/photo-booth"
-            className="group inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-glow transition-all hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Try Photo Booth
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-          <Link
-            href="#features"
-            className="inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-background/50 px-6 text-sm font-medium text-foreground backdrop-blur-sm transition-all hover:border-border/80 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Learn More
-          </Link>
-        </motion.div>
-      </div>
-    </section>
-  );
-}
-
-// ============================================================
-// Features Section
-// ============================================================
 
 function FeaturesSection() {
   return (
@@ -141,21 +65,28 @@ const steps = [
     step: "01",
     title: "Capture",
     description:
-      "Use the AI Photo Booth to take a photo. Choose from multiple capture modes including virtual backgrounds and portrait mode.",
+      "Take a picture in the Photo Booth. Choose from multiple layout modes.",
   },
   {
     icon: Wand2,
     step: "02",
-    title: "Transform",
+    title: "Enhance",
     description:
-      "Your captured photo is automatically processed and transformed into puzzle pieces using canvas-based rendering.",
+      "Use AI to automatically remove the background and apply professional studio colors.",
+  },
+  {
+    icon: Hand,
+    step: "03",
+    title: "Track",
+    description:
+      "Your webcam tracks your hand gestures in real-time without controllers.",
   },
   {
     icon: Puzzle,
-    step: "03",
+    step: "04",
     title: "Play",
     description:
-      "Solve the puzzle using hand gestures. Pinch to pick up pieces and place them in the correct position.",
+      "Solve the puzzle using pinch gestures. Assemble the pieces to reveal your memory.",
   },
 ];
 
@@ -173,7 +104,7 @@ function HowItWorksSection() {
         initial="hidden"
         whileInView="visible"
         viewport={viewportOnce}
-        className="grid gap-8 md:grid-cols-3"
+        className="grid gap-8 md:grid-cols-4"
       >
         {steps.map((step) => {
           const Icon = step.icon;
@@ -279,9 +210,10 @@ function RoadmapSection() {
 export default function LandingPage() {
   return (
     <main className="flex-1">
-      <HeroSection />
-      <FeaturesSection />
+      <HeroPuzzle />
       <HowItWorksSection />
+      <HeroPhotoBooth />
+      <FeaturesSection />
       <TechStackSection />
       <RoadmapSection />
       <Footer />
