@@ -12,6 +12,7 @@ import { CameraControls } from "@/features/photo-booth/components/camera-control
 import { CountdownOverlay } from "@/features/photo-booth/components/countdown-overlay";
 import { FlashOverlay } from "@/features/photo-booth/components/flash-overlay";
 import { CaptureProgress } from "@/features/photo-booth/components/capture-progress";
+import { FullscreenLayout } from "@/components/layout/fullscreen-layout";
 
 interface PhotoStageProps {
   config: CaptureModeConfig;
@@ -113,16 +114,18 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-black">
-      
-      <button 
-        onClick={onBack}
-        className="absolute left-6 top-24 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Back to Mode Selection"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
-
+    <FullscreenLayout
+      className="bg-black"
+      headerLeft={
+        <button 
+          onClick={onBack}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Back to Mode Selection"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+      }
+    >
       {/* Note: CameraPreview now takes no stream, it just gets it via attachVideo */}
       <CameraPreview facingMode={camera.facingMode} />
       
@@ -150,6 +153,6 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
         onToggleCountdown={toggleCountdown}
         isCapturing={isCapturingFrame || countdownValue !== null}
       />
-    </div>
+    </FullscreenLayout>
   );
 }

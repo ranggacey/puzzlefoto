@@ -1,6 +1,8 @@
 import { motion } from "motion/react";
 import { Check, RotateCcw, ArrowLeft } from "lucide-react";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { FullscreenLayout } from "@/components/layout/fullscreen-layout";
 import { fadeInUp } from "@/lib/animations";
 import { CapturedPhoto, CaptureModeConfig } from "@/types";
 import { cn } from "@/lib/utils";
@@ -82,21 +84,33 @@ export function ResultPreview({ photos, config, onRetakeAll, onBack }: ResultPre
   };
 
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center overflow-y-auto bg-background/95 p-6 backdrop-blur-sm">
-      {/* Back Button positioned absolute to avoid messing up the layout */}
-      <button 
-        onClick={onBack}
-        className="absolute left-6 top-24 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        aria-label="Back to Mode Selection"
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </button>
-
+    <FullscreenLayout
+      className="bg-background/95"
+      headerLeft={
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="rounded-full"
+          onClick={onBack}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      }
+      headerRight={
+        <Button 
+          className="rounded-full px-6 font-bold shadow-lg"
+          onClick={handleContinue}
+        >
+          Continue
+          <Check className="ml-2 h-4 w-4" />
+        </Button>
+      }
+    >
       <motion.div
         variants={fadeInUp}
         initial="hidden"
         animate="visible"
-        className="flex w-full flex-col items-center"
+        className="flex h-full w-full flex-col items-center justify-center p-6"
       >
         <div className={cn(
           "relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl",
@@ -105,7 +119,7 @@ export function ResultPreview({ photos, config, onRetakeAll, onBack }: ResultPre
           {renderLayout()}
 
           <div className={cn(
-            "flex w-full items-center justify-between p-6",
+            "flex w-full items-center justify-center p-6",
             config.previewLayout === "filmStrip" ? "mt-6 max-w-[280px] rounded-2xl border border-border bg-card shadow-lg" : ""
           )}>
             <button
@@ -115,17 +129,9 @@ export function ResultPreview({ photos, config, onRetakeAll, onBack }: ResultPre
               <RotateCcw className="h-4 w-4" />
               Retake All
             </button>
-            
-            <button
-              onClick={handleContinue}
-              className="inline-flex h-12 items-center gap-2 rounded-xl bg-primary px-6 text-sm font-medium text-primary-foreground shadow-glow transition-all hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-8"
-            >
-              Continue
-              <Check className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </motion.div>
-    </div>
+    </FullscreenLayout>
   );
 }

@@ -7,6 +7,7 @@ import { Menu, X, Aperture } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Container } from "./container";
 import { navigation, siteConfig } from "@/constants/site";
+import { APP_HEADER_HEIGHT } from "@/constants/layout";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 
 export function Navbar() {
@@ -67,7 +68,10 @@ export function Navbar() {
       )}
     >
       <Container>
-        <nav className="flex h-16 items-center justify-between">
+        <nav 
+          className="flex items-center justify-between"
+          style={{ height: `${APP_HEADER_HEIGHT}px` }}
+        >
           {/* Logo */}
           <Link
             href="/"

@@ -11,6 +11,7 @@ import { BackgroundComparison } from "./background-comparison";
 import { ProcessingOverlay } from "./processing-overlay";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { FullscreenLayout } from "@/components/layout/fullscreen-layout";
 
 export function BackgroundStudio() {
   const router = useRouter();
@@ -61,11 +62,8 @@ export function BackgroundStudio() {
   };
 
   return (
-    <div className="relative flex h-screen w-full flex-col bg-background">
-      <ProcessingOverlay status={processingStatus} progress={processingProgress} />
-      
-      {/* Header */}
-      <header className="absolute left-0 right-0 top-0 z-40 flex items-center justify-between p-6">
+    <FullscreenLayout
+      headerLeft={
         <Button 
           variant="secondary" 
           size="icon" 
@@ -74,21 +72,25 @@ export function BackgroundStudio() {
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex gap-2">
+      }
+      headerRight={
+        <>
           <ThemeToggle />
           <Button 
-            className="rounded-full px-6 shadow-lg font-bold"
+            className="rounded-full px-6 font-bold shadow-lg"
             onClick={handleContinue}
             disabled={processingStatus !== "DONE"}
           >
             Continue
             <Check className="ml-2 h-4 w-4" />
           </Button>
-        </div>
-      </header>
-
+        </>
+      }
+    >
+      <ProcessingOverlay status={processingStatus} progress={processingProgress} />
+      
       {/* Main Content Area */}
-      <main className="flex flex-1 flex-col overflow-hidden pb-[140px] pt-[100px] px-6">
+      <main className="flex h-full w-full flex-col overflow-hidden pb-[140px] pt-[100px] px-6">
         <div className="relative flex flex-1 items-center justify-center">
           {photo && (
             <BackgroundComparison 
@@ -147,6 +149,6 @@ export function BackgroundStudio() {
           onChange={setBackgroundConfig} 
         />
       </div>
-    </div>
+    </FullscreenLayout>
   );
 }
