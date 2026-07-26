@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ArrowLeft } from "lucide-react";
-import { useCamera } from "@/features/photo-booth/hooks/use-camera";
+import { usePhotoBoothCamera } from "@/features/photo-booth/hooks/use-photo-booth-camera";
 import { useCountdown } from "@/features/photo-booth/hooks/use-countdown";
 import { COUNTDOWN_OPTIONS, CountdownOption } from "@/features/photo-booth/constants/camera";
 import type { CaptureModeConfig, CapturedPhoto } from "@/types";
@@ -22,7 +22,7 @@ interface PhotoStageProps {
 }
 
 export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack }: PhotoStageProps) {
-  const camera = useCamera();
+  const camera = usePhotoBoothCamera();
 
   const [flashActive, setFlashActive] = useState(false);
   const [isCapturingFrame, setIsCapturingFrame] = useState(false);

@@ -1,4 +1,4 @@
-import { CaptureOptions } from "../types/camera";
+import { CaptureOptions } from "@/features/photo-booth/types/camera";
 
 class CaptureService {
   /**

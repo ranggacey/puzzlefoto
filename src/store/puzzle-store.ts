@@ -1,6 +1,13 @@
 import { create } from "zustand";
-import type { LoadingState, PuzzlePiece } from "@/types";
+import type { LoadingState, PuzzlePiece, CapturedPhoto } from "@/types";
 import type { PuzzleDifficulty } from "@/types/puzzle";
+
+export type PuzzleScene =
+  | "camera"
+  | "capturing"
+  | "freeze"
+  | "floating"
+  | "calibration";
 
 // ============================================================
 // Puzzle Store (shell for future implementation)
@@ -13,8 +20,10 @@ interface PuzzleState {
   selectedPieceId: number | null;
   /** Puzzle grid dimensions */
   difficulty: PuzzleDifficulty;
+  /** Puzzle scene state */
+  scene: PuzzleScene;
   /** Source image for the puzzle */
-  imageUrl: string | null;
+  sourceImage: CapturedPhoto | null;
   /** Whether the puzzle is complete */
   isComplete: boolean;
   /** Number of moves made */
@@ -30,7 +39,8 @@ interface PuzzleState {
   setPieces: (pieces: PuzzlePiece[]) => void;
   setSelectedPiece: (id: number | null) => void;
   setDifficulty: (difficulty: PuzzleDifficulty) => void;
-  setImageUrl: (url: string) => void;
+  setScene: (scene: PuzzleScene) => void;
+  setSourceImage: (photo: CapturedPhoto | null) => void;
   setComplete: (complete: boolean) => void;
   incrementMoves: () => void;
   setElapsedTime: (time: number) => void;
@@ -43,7 +53,8 @@ const initialPuzzleState = {
   pieces: [],
   selectedPieceId: null,
   difficulty: "medium" as const,
-  imageUrl: null,
+  scene: "camera" as const,
+  sourceImage: null,
   isComplete: false,
   moveCount: 0,
   elapsedTime: 0,
@@ -57,7 +68,8 @@ export const usePuzzleStore = create<PuzzleState>((set) => ({
   setPieces: (pieces) => set({ pieces }),
   setSelectedPiece: (id) => set({ selectedPieceId: id }),
   setDifficulty: (difficulty) => set({ difficulty }),
-  setImageUrl: (url) => set({ imageUrl: url }),
+  setScene: (scene) => set({ scene }),
+  setSourceImage: (photo) => set({ sourceImage: photo }),
   setComplete: (complete) => set({ isComplete: complete }),
   incrementMoves: () => set((state) => ({ moveCount: state.moveCount + 1 })),
   setElapsedTime: (time) => set({ elapsedTime: time }),

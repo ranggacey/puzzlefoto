@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useCamera } from "@/features/photo-booth/hooks/use-camera";
+import { usePhotoBoothCamera } from "@/features/photo-booth/hooks/use-photo-booth-camera";
 import { FacingMode } from "@/features/photo-booth/types/camera";
 import { cameraDebug, endCameraTimer } from "@/features/photo-booth/utils/camera-debug";
 
@@ -10,7 +10,7 @@ interface CameraPreviewProps {
 
 export function CameraPreview({ facingMode, className }: CameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const camera = useCamera();
+  const camera = usePhotoBoothCamera();
 
   useEffect(() => {
     cameraDebug("[Preview] mounted");

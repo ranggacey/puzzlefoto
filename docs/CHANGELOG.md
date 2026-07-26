@@ -4,6 +4,17 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.0.1] - Remove Legacy Puzzle Redirect
+- Aligned architecture to make Puzzle an independent experience.
+- Removed legacy redirect logic from `/puzzle` that depended on Photo Booth's `processedPhotos`.
+- The `/puzzle` route is now always accessible directly.
+
+## [Sprint 5.0] - Puzzle Experience Foundation
+- Extracted `CameraService` to a shared infrastructure layer.
+- Implemented feature-specific camera providers (`PhotoBoothCameraProvider`, `PuzzleCameraProvider`) to prevent God Objects.
+- Built the `/puzzle` route with automatic redirection if photos are missing.
+- Implemented `PuzzleExperience` orchestrator featuring `LiveBackground`, `PuzzleStage`, `FloatingPhoto`, and `CalibrationOverlay`.
+
 ## [Sprint 4.5] - Landing Experience Redesign
 - Repositioned the Landing page to focus on Vision Puzzle as the primary product.
 - Introduced a CSS/Framer Motion-powered puzzle cracking animation for the Hero section.

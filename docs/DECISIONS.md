@@ -4,9 +4,9 @@ This document records the major architectural decisions made during the developm
 
 ---
 
-## 1. Camera Engine Isolation
-**Decision**: `CameraProvider` owns the MediaStream lifecycle. `CameraService` is a pure browser wrapper.
-**Reasoning**: Prevents duplicate video streams and camera access collisions. Decouples the React lifecycle from the browser `navigator.mediaDevices` API.
+## 1. Feature-Specific Camera Providers
+**Decision**: `CameraService` is shared infrastructure responsible only for browser camera APIs (`openStream`, `stopStream`, `enumerateDevices`). Each feature (e.g., Photo Booth, Puzzle) owns its own camera lifecycle through a dedicated `CameraProvider` (e.g., `PhotoBoothCameraProvider`, `PuzzleCameraProvider`).
+**Reasoning**: Prevents a single global `CameraProvider` from becoming a feature-agnostic "God Object" as we introduce completely different lifecycles (countdown/capture vs. hand tracking/gameplay). Camera lifecycle ownership is feature-specific, while browser camera access remains centralized.
 
 ## 2. Background Studio Decoupling
 **Decision**: Background Studio consumes finalized `CapturedPhoto` objects rather than directly accessing the live camera stream.

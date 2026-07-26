@@ -1,17 +1,16 @@
 "use client";
 
-import { ArrowRight, Play, Info } from "lucide-react";
+import { ArrowRight, Play } from "lucide-react";
 import { PuzzleHeroAnimation } from "./puzzle-hero-animation";
 import { fadeIn, fadeInUp } from "@/lib/animations";
-import { useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 
 export function HeroPuzzle() {
-  const [showComingSoon, setShowComingSoon] = useState(false);
+  const router = useRouter();
 
   const handleStartPuzzle = () => {
-    setShowComingSoon(true);
-    setTimeout(() => setShowComingSoon(false), 5000);
+    router.push("/puzzle");
   };
 
   return (
@@ -79,21 +78,6 @@ export function HeroPuzzle() {
               Watch Demo
             </button>
           </motion.div>
-
-          {/* Coming Soon Indicator */}
-          <AnimatePresence>
-            {showComingSoon && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className="mt-6 inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-medium text-primary shadow-sm"
-              >
-                <Info className="h-4 w-4" />
-                The Puzzle Experience is arriving in Sprint 5! Try the Photo Booth below.
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Right: Animation */}

@@ -2,14 +2,14 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { CameraDevice, CameraState, FacingMode, CameraContextType } from "@/features/photo-booth/types/camera";
-import { cameraService } from "@/features/photo-booth/services/camera.service";
-import { captureService } from "@/features/photo-booth/services/capture.service";
+import { cameraService } from "@/services/camera.service";
+import { captureService } from "@/services/capture.service";
 
 import { cameraDebug, cameraWarn, startCameraTimer, endCameraTimer } from "@/features/photo-booth/utils/camera-debug";
 
-const CameraContext = createContext<CameraContextType | null>(null);
+const PhotoBoothCameraContext = createContext<CameraContextType | null>(null);
 
-export function CameraProvider({ children }: { children: React.ReactNode }) {
+export function PhotoBoothCameraProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<CameraState>("IDLE");
   const [devices, setDevices] = useState<CameraDevice[]>([]);
   const [deviceId, setDeviceId] = useState<string | null>(null);
@@ -198,7 +198,7 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
   }, [stop]);
 
   return (
-    <CameraContext.Provider value={{
+    <PhotoBoothCameraContext.Provider value={{
       state,
       devices,
       deviceId,
@@ -212,12 +212,12 @@ export function CameraProvider({ children }: { children: React.ReactNode }) {
       attachVideo
     }}>
       {children}
-    </CameraContext.Provider>
+    </PhotoBoothCameraContext.Provider>
   );
 }
 
-export function useCameraContext() {
-  const ctx = useContext(CameraContext);
-  if (!ctx) throw new Error("useCameraContext must be used within CameraProvider");
+export function usePhotoBoothCamera() {
+  const ctx = useContext(PhotoBoothCameraContext);
+  if (!ctx) throw new Error("usePhotoBoothCamera must be used within PhotoBoothCameraProvider");
   return ctx;
 }

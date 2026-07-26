@@ -1,4 +1,4 @@
-import { CameraProvider } from "@/components/providers/camera-provider";
+import { PhotoBoothCameraProvider } from "@/features/photo-booth/providers/photo-booth-camera-provider";
 
 export default function PhotoBoothLayout({
   children,
@@ -6,8 +6,8 @@ export default function PhotoBoothLayout({
   children: React.ReactNode;
 }) {
   return (
-    <CameraProvider>
+    <PhotoBoothCameraProvider>
       {children}
-    </CameraProvider>
+    </PhotoBoothCameraProvider>
   );
 }

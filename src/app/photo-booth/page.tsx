@@ -7,7 +7,7 @@ import { CaptureModeSelector } from "@/features/photo-booth/components/capture-m
 import { PhotoStage } from "@/features/photo-booth/components/photo-stage";
 import { ResultPreview } from "@/features/photo-booth/components/result-preview";
 import { CapturedPhoto, CaptureMode } from "@/types";
-import { useCamera } from "@/features/photo-booth/hooks/use-camera";
+import { usePhotoBoothCamera } from "@/features/photo-booth/hooks/use-photo-booth-camera";
 
 export default function PhotoBoothPage() {
   const { 
@@ -18,7 +18,7 @@ export default function PhotoBoothPage() {
     clearPhotos 
   } = useCaptureStore();
 
-  const camera = useCamera();
+  const camera = usePhotoBoothCamera();
   const [draftMode, setDraftMode] = useState<CaptureMode | null>(mode);
 
   const handleSelectMode = useCallback((modeId: CaptureMode) => {

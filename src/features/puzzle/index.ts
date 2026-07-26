@@ -1,6 +1,3 @@
-// Puzzle feature module
-// This directory will contain all Puzzle related components, hooks, and utilities.
-// See: src/features/puzzle/components/
-// See: src/features/puzzle/hooks/
-// See: src/features/puzzle/utils/
-export {};
+export { PuzzleExperience } from "./components/puzzle-experience";
+export { PuzzleCameraProvider } from "./providers/puzzle-camera-provider";
+export { usePuzzleCamera } from "./hooks/use-puzzle-camera";

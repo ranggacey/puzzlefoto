@@ -74,8 +74,8 @@ Features expose a minimalistic public API. Everything not explicitly exported is
 Responsibilities are strictly assigned to single owners. **No responsibility should belong to two modules simultaneously.**
 
 **Camera Engine Roles:**
-- **`CameraProvider`** OWNS the MediaStream lifecycle, the active stream reference, permission status, and state machine transitions.
-- **`CameraService`** OWNS all interactions with the browser's `MediaDevices` API (`getUserMedia`, `enumerateDevices`). It does NOT maintain lifecycle state.
+- **`CameraService`** OWNS all interactions with the browser's `MediaDevices` API (`getUserMedia`, `enumerateDevices`). It does NOT maintain lifecycle state. It is a shared infrastructure service.
+- **Feature-Specific Providers (`PhotoBoothCameraProvider`, `PuzzleCameraProvider`)** OWN their respective MediaStream lifecycles, active stream references, and state machine transitions. They consume `CameraService` but remain independent from each other.
 - **`CaptureService`** OWNS the Canvas DOM manipulation required to freeze a video frame into a base64 string or Blob.
 - **`FullscreenService`** OWNS standardizing browser-specific fullscreen APIs.
 
@@ -85,7 +85,7 @@ Responsibilities are strictly assigned to single owners. **No responsibility sho
 
 Every major piece of state has exactly one source of truth.
 
-- **Camera Lifecycle State**: Owned by `CameraProvider` (React Context) due to its tight coupling with the DOM stream lifecycle.
+- **Camera Lifecycle State**: Owned by feature-specific contexts (e.g., `PhotoBoothCameraProvider`, `PuzzleCameraProvider`) due to their tight coupling with distinct feature requirements.
 - **Capture Store (`camera-store.ts`)**: Owned by Zustand. Stores the currently selected mode and the array of captured photos.
 - **Puzzle State (`puzzle-store.ts`)**: Owned by Zustand. Manages piece locations, win states, and difficulty settings.
 - **Hand Tracking State (`hand-tracking-store.ts`)**: Owned by Zustand. Dispatches real-time normalized cursor coordinates and detected gestures.
@@ -121,7 +121,7 @@ Future UI additions must strictly adhere to the established design language to p
 
 - **Lazy-Load Heavy ML**: Heavy AI dependencies (MediaPipe, ONNX) MUST be loaded using Next.js `next/dynamic` with `{ ssr: false }` or dynamic `import()` to guarantee the landing page remains perfectly lightweight.
 - **Render Optimization**: Avoid unnecessary re-renders in heavy contexts (like `PhotoStage` or `PuzzleStage`). Memoize handlers only when passing them to deep child components.
-- **MediaStream Hygiene**: Never maintain duplicate active MediaStream instances. `CameraProvider` guarantees singleton hardware access. Ensure previous streams are stopped synchronously before acquiring new ones.
+- **MediaStream Hygiene**: Never maintain duplicate active MediaStream instances. The active feature's `CameraProvider` guarantees hardware access. Ensure previous streams are stopped synchronously before acquiring new ones.
 
 ---
 

@@ -5,9 +5,9 @@ import {
   NotReadableError, 
   CameraDevice, 
   FacingMode 
-} from "../types/camera";
-import { DEFAULT_CAMERA_CONSTRAINTS } from "../constants/camera";
-import { cameraDebug, logStreamInfo, cameraWarn, startCameraTimer, endCameraTimer } from "../utils/camera-debug";
+} from "@/features/photo-booth/types/camera";
+import { DEFAULT_CAMERA_CONSTRAINTS } from "@/features/photo-booth/constants/camera";
+import { cameraDebug, logStreamInfo, cameraWarn, startCameraTimer, endCameraTimer } from "@/features/photo-booth/utils/camera-debug";
 
 class CameraService {
   /**
