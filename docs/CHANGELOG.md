@@ -4,6 +4,12 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.2.2] - Puzzle Visual Refinement
+- Removed background segmentation from the Puzzle Image Pipeline to simplify architecture and eliminate preprocessing latency.
+- Updated `ARCHITECTURE_FREEZE.md` to reflect distinct, decoupled image pipelines for Photo Booth and Puzzle Experience.
+- Applied semi-transparent visual treatment (80% opacity, subtle outlines, soft shadows) to puzzle pieces for improved gameplay readability over the live camera.
+- Pre-defined `idle`, `active`, and `locked` Framer Motion animation variants in `PuzzlePiece` to prepare a robust foundation for Sprint 5.3 interactions.
+
 ## [Sprint 5.2.1] - Gameplay Entry Flow Refinement
 - Inserted `difficulty-selection` overlay into the Puzzle Experience orchestration.
 - Prevented automatic puzzle generation, ensuring generation only fires upon explicit confirmation.

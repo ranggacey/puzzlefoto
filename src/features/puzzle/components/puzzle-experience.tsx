@@ -9,8 +9,6 @@ import { FloatingPhoto } from "./floating-photo";
 import { PuzzleBoard } from "./puzzle-board";
 import { DifficultySelectionOverlay } from "./difficulty-selection-overlay";
 import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
-import { segmentationService } from "@/features/background-studio/services/segmentation.service";
-import { compositorService } from "@/features/background-studio/services/compositor.service";
 
 export function PuzzleExperience() {
   const { scene, sourceImage, pieces, difficulty, setScene, setSourceImage, setDifficulty, generatePuzzle, reset } = usePuzzleStore();
@@ -21,20 +19,9 @@ export function PuzzleExperience() {
     const photoDataUrl = await camera.capture();
     
     if (photoDataUrl) {
-      // Process image to a transparent PNG using Background Studio services
-      const img = new Image();
-      img.src = photoDataUrl;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-      
-      await segmentationService.initialize();
-      const mask = await segmentationService.segment(img);
-      const transparentDataUrl = compositorService.composeToDataUrl(img, mask, { type: "transparent" });
-
       const newSourceImage = {
         id: crypto.randomUUID(),
-        image: transparentDataUrl,
+        image: photoDataUrl,
         width: 1080,
         height: 1920,
         timestamp: Date.now()

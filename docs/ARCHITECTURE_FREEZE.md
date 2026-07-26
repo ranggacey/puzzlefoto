@@ -147,9 +147,10 @@ State transitions control presentation logic only. They must never trigger infra
 
 ### Puzzle Image Pipeline
 The Puzzle feature owns a strict, automated image-processing pipeline:
-`Camera` → `Capture` → `Automatic Background Segmentation` → `Transparent PNG` → `Floating Photo` → `Puzzle Generation` → `Gameplay`
+`Camera` → `Capture` → `Original Image` → `Puzzle Generation` → `Gameplay`
 
-The generated transparent PNG is immutable. All puzzle pieces are generated from this single transparent source image. Gameplay must never modify or overwrite the original source image, nor use the raw captured frame as its primary source.
+The generated original image is immutable. All puzzle pieces are generated from this single source image. The Puzzle Experience intentionally avoids background segmentation, reserving that exclusively for the Photo Booth workflow, to preserve a lightweight pipeline and improve gameplay readability.
+
 
 ### Puzzle and Photo Booth Separation
 The Puzzle feature and the Photo Booth are completely independent experiences. Photo Booth provides user-controlled editing and export; Puzzle provides an automated gameplay pipeline. They may share low-level infrastructure (CameraService, AI services) but never user workflows, state, or produced assets.

@@ -32,11 +32,36 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
   const bgSizeX = columns * 100;
   const bgSizeY = rows * 100;
 
+  const pieceVariants = {
+    idle: {
+      opacity: 0.8,
+      scale: 1,
+      zIndex: 10,
+      filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
+    },
+    active: {
+      opacity: 1,
+      scale: 1.05,
+      zIndex: 50,
+      filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.5))",
+    },
+    locked: {
+      opacity: 1,
+      scale: 1,
+      zIndex: 1,
+      filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))",
+    },
+  };
+
+  const currentState = piece.isLocked ? "locked" : "idle"; // active will be used in dragging
+
   return (
     <motion.div
       layout
+      variants={pieceVariants}
       initial={false}
-      className="absolute overflow-hidden"
+      animate={currentState}
+      className="absolute overflow-hidden border border-white/20 rounded-sm"
       style={{
         width: `${widthPercent}%`,
         height: `${heightPercent}%`,
@@ -46,8 +71,6 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
         backgroundSize: `${bgSizeX}% ${bgSizeY}%`,
         backgroundPosition: `${bgPosX}% ${bgPosY}%`,
         backgroundRepeat: "no-repeat",
-        zIndex: piece.isLocked ? 1 : 10,
-        filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
       }}
     />
   );
