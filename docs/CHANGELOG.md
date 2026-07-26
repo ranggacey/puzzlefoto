@@ -4,6 +4,11 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.3.1] - Drag Cancellation & Swap Validation
+- Enforced strict grid alignment by treating drag transforms as temporary visual offsets (`dragSnapToOrigin=true`).
+- Ensured invalid interactions (dropping outside board, dropping on locked pieces) smoothly animate pieces back to their original slots.
+- Reinforced the architecture rule that PuzzleStore completely owns piece position; components merely render slot indices.
+
 ## [Sprint 5.3] - Slot-Based Grid Drag Implementation
 - Migrated puzzle physics to a Slot-Based Gameplay architecture. Pieces track their current and correct slot indices rather than arbitrary spatial coordinates.
 - Implemented `movePieceToSlot` within `PuzzleStore` to centralize drag swaps, locks, and condition checks.

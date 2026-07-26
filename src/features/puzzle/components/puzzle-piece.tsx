@@ -73,6 +73,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       dragConstraints={dragConstraints}
       dragElastic={0}
       dragMomentum={false}
+      dragSnapToOrigin={true}
       onDragStart={() => setIsDragging(true)}
       onDragEnd={(e, info) => {
         setIsDragging(false);
