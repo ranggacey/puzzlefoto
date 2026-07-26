@@ -79,7 +79,7 @@ export class GestureRecognizer {
         this.emit("pointerDown", pointer.x, pointer.y, hoveredPieceId);
       }
     } else if (!this.isPhysicallyPinching && pinching) {
-      if (timestamp - this.pinchEndTime >= DEBOUNCE_MS) {
+      if (timestamp - this.pinchEndTime >= InteractionConfig.releaseConfirmationMs) {
         pinching = false;
         phase = "pinch-end";
         this.emit("pointerUp", pointer.x, pointer.y, hoveredPieceId);

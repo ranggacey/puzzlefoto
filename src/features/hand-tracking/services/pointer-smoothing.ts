@@ -1,21 +1,14 @@
+import { InteractionConfig } from "../constants/interaction-config";
+
 /**
  * Exponential Moving Average (EMA) implementation to reduce jitter
- * in hand tracking coordinates.
+ * in hand tracking coordinates. Uses Adaptive Smoothing based on speed.
  */
 export class PointerSmoothing {
-  private alpha: number;
   private currentX: number | null = null;
   private currentY: number | null = null;
 
-  /**
-   * @param smoothingFactor - Value between 0 and 1. 
-   * Higher values mean less smoothing (more responsive), 
-   * lower values mean more smoothing (less responsive but steadier).
-   * Default 0.3 provides a good balance.
-   */
-  constructor(smoothingFactor: number = 0.3) {
-    this.alpha = Math.max(0, Math.min(1, smoothingFactor));
-  }
+  constructor() {}
 
   /**
    * Applies the EMA filter to the incoming raw coordinates.
@@ -25,8 +18,20 @@ export class PointerSmoothing {
       this.currentX = rawX;
       this.currentY = rawY;
     } else {
-      this.currentX = this.alpha * rawX + (1 - this.alpha) * this.currentX;
-      this.currentY = this.alpha * rawY + (1 - this.alpha) * this.currentY;
+      const dx = rawX - this.currentX;
+      const dy = rawY - this.currentY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      
+      // Map distance to a smoothing factor (alpha)
+      // distance ~ 0.005 is very slow (jitter), distance ~ 0.05 is fast movement
+      const t = Math.max(0, Math.min(1, (dist - 0.005) / 0.045));
+      // smoothing represents how much of the OLD value to keep
+      // fast movement -> less smoothing (keep less old value) -> 0.45
+      // slow movement -> more smoothing (keep more old value) -> 0.82
+      const smoothing = InteractionConfig.adaptiveSmoothing.slow * (1 - t) + InteractionConfig.adaptiveSmoothing.fast * t;
+      
+      this.currentX = (1 - smoothing) * rawX + smoothing * this.currentX;
+      this.currentY = (1 - smoothing) * rawY + smoothing * this.currentY;
     }
     
     return { x: this.currentX, y: this.currentY };

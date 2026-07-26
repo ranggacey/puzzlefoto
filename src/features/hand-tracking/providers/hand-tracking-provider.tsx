@@ -5,6 +5,7 @@ import { usePuzzleCameraContext } from "@/features/puzzle/providers/puzzle-camer
 import { handTrackingService } from "../services/hand-tracking-service";
 import { PointerSmoothing } from "../services/pointer-smoothing";
 import { GestureRecognizer } from "../services/gesture-recognizer";
+import { HandTrackingConfidenceFilter } from "../services/confidence-filter";
 import { InteractionConfig } from "../constants/interaction-config";
 import type { HandState } from "../types/hand-state";
 import type { GestureState, HitTester, NormalizedPointerEvent } from "../types/gesture-state";
@@ -40,8 +41,9 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
   const [gestureState, setGestureState] = useState<GestureState>(initialGestureState);
   
   const animationFrameRef = useRef<number | null>(null);
-  const pointerSmoothing = useRef(new PointerSmoothing(0.3));
+  const pointerSmoothing = useRef(new PointerSmoothing());
   const gestureRecognizer = useRef(new GestureRecognizer());
+  const confidenceFilter = useRef(new HandTrackingConfidenceFilter());
   const lastDetectedTime = useRef<number>(0);
   const lastValidState = useRef<HandState | null>(null);
 
@@ -91,60 +93,72 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
         const result = handTrackingService.detectForVideo(video, performance.now());
         
         if (result && result.landmarks && result.landmarks.length > 0) {
-          const landmarks = result.landmarks[0];
-          const handedness = (result.handedness[0]?.[0]?.categoryName === "Left" ? "left" : "right") as "left" | "right";
-          const confidence = result.handedness[0]?.[0]?.score ?? 0;
+          const rawLandmarks = result.landmarks[0];
+          const landmarks = confidenceFilter.current.filter(rawLandmarks);
           
-          // Index finger tip is landmark 8
-          const indexFingertip = landmarks[8];
-          
-          // The results from mediapipe are normalized [0, 1] relative to the video feed.
-          // Since our video is mirrored via CSS (`scale-x-[-1]`), we must mirror the X coordinate 
-          // to match the screen visual.
-          const rawX = 1 - indexFingertip.x;
-          const rawY = indexFingertip.y;
-          
-          const smoothed = pointerSmoothing.current.smooth(rawX, rawY);
+          if (landmarks) {
+            const handedness = (result.handedness[0]?.[0]?.categoryName === "Left" ? "left" : "right") as "left" | "right";
+            const confidence = result.handedness[0]?.[0]?.score ?? 0;
+            
+            // Index finger tip is landmark 8
+            const indexFingertip = landmarks[8];
+            
+            // The results from mediapipe are normalized [0, 1] relative to the video feed.
+            // Since our video is mirrored via CSS (`scale-x-[-1]`), we must mirror the X coordinate 
+            // to match the screen visual.
+            const rawX = 1 - indexFingertip.x;
+            const rawY = indexFingertip.y;
+            
+            const smoothed = pointerSmoothing.current.smooth(rawX, rawY);
 
-          const newState = {
-            detected: true,
-            pointer: smoothed,
-            landmarks,
-            handedness,
-            confidence,
-            pinch: false,
-          };
-          
-          lastDetectedTime.current = performance.now();
-          lastValidState.current = newState;
-          
-          setHandState(newState);
+            const newState = {
+              detected: true,
+              pointer: smoothed,
+              landmarks,
+              handedness,
+              confidence,
+              pinch: false,
+            };
+            
+            lastDetectedTime.current = performance.now();
+            lastValidState.current = newState;
+            
+            setHandState(newState);
 
-          // Process gestures
-          const gState = gestureRecognizer.current.process(newState, performance.now());
-          setGestureState(gState);
-        } else {
-          // Tracking lost - check persistence
-          const timeSinceLastDetection = performance.now() - lastDetectedTime.current;
-          
-          if (lastValidState.current && timeSinceLastDetection < InteractionConfig.trackingPersistenceMs) {
-            // Keep the last valid state and feed it to gesture recognizer to allow it to apply its own grab persistence
-            setHandState(lastValidState.current);
-            const gState = gestureRecognizer.current.process(lastValidState.current, performance.now());
+            // Process gestures
+            const gState = gestureRecognizer.current.process(newState, performance.now());
             setGestureState(gState);
           } else {
-            // Persistence expired, actually lose tracking
-            pointerSmoothing.current.reset();
-            const emptyState = { ...initialHandState, detected: false };
-            lastValidState.current = null;
-            setHandState(emptyState);
-            const gState = gestureRecognizer.current.process(emptyState, performance.now());
-            setGestureState(gState);
+            // Filter rejected this frame (impossible jump), handle as missing frame
+            handleMissingFrame();
           }
+        } else {
+          // Tracking lost - check persistence
+          handleMissingFrame();
         }
       }
       
       animationFrameRef.current = requestAnimationFrame(loop);
+    };
+
+    const handleMissingFrame = () => {
+      const timeSinceLastDetection = performance.now() - lastDetectedTime.current;
+      
+      if (lastValidState.current && timeSinceLastDetection < InteractionConfig.trackingPersistenceMs) {
+        // Keep the last valid state and feed it to gesture recognizer to allow it to apply its own grab persistence
+        setHandState(lastValidState.current);
+        const gState = gestureRecognizer.current.process(lastValidState.current, performance.now());
+        setGestureState(gState);
+      } else {
+        // Persistence expired, actually lose tracking
+        pointerSmoothing.current.reset();
+        confidenceFilter.current.reset();
+        const emptyState = { ...initialHandState, detected: false };
+        lastValidState.current = null;
+        setHandState(emptyState);
+        const gState = gestureRecognizer.current.process(emptyState, performance.now());
+        setGestureState(gState);
+      }
     };
 
     animationFrameRef.current = requestAnimationFrame(loop);

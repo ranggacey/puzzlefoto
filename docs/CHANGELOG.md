@@ -4,6 +4,14 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.6.2] - Hand Tracking Stability Refinement
+- Implemented **Adaptive Pointer Smoothing** in `PointerSmoothing`, applying dynamic easing (`alpha` between `0.45` and `0.82`) based on cursor velocity to eliminate aiming tremor while maintaining responsiveness.
+- Added `HandTrackingConfidenceFilter` to intercept raw MediaPipe outputs and discard impossible coordinate jumps (spikes) before they disrupt the pointer.
+- Upgraded the pinch release logic in `GestureRecognizer` with a `300ms` **Release Confirmation Window**, creating a **Sticky Grab** state that prevents accidental drops during continuous pinching.
+- Enhanced `PointerOverlay` with stronger magnetic assistance (`85%`) specifically applied while holding a piece, making exact slot placement completely effortless.
+- Introduced a realtime **Slot Preview** directly on the `PuzzleBoard`, which highlights the hovered destination slot to give users clear drop-zone feedback.
+- Tweaked `PuzzlePiece` invalid release handling to use a gentler animation transition (`stiffness: 300, damping: 20`) for a soft bounce-back instead of an immediate rigid snap.
+
 ## [Sprint 5.6.1] - Hand Tracking Interaction Refinement
 - Abstracted tracking and visual variables into a dedicated `InteractionConfig`.
 - Added Tracking Persistence (`180ms`) in `HandTrackingProvider` to prevent single-frame flickering when tracking is briefly lost.

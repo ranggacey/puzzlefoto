@@ -97,6 +97,26 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
 
   if (!sourceImage) return null;
 
+  let previewSlotIndex: number | null = null;
+  if (dragState.isDragging && dragState.boardRect) {
+    const rect = dragState.boardRect;
+    const x = dragState.currentX - rect.left;
+    const y = dragState.currentY - rect.top;
+
+    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+      const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
+      const col = Math.floor((x / rect.width) * columns);
+      const row = Math.floor((y / rect.height) * rows);
+      const safeCol = Math.max(0, Math.min(col, columns - 1));
+      const safeRow = Math.max(0, Math.min(row, rows - 1));
+      previewSlotIndex = safeRow * columns + safeCol;
+    }
+  }
+
+  const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
+  const slotWidthPct = 100 / columns;
+  const slotHeightPct = 100 / rows;
+
   return (
     <div className="relative w-full max-w-4xl aspect-[4/3] mx-auto flex items-center justify-center p-4 sm:p-8">
       {/* Pieces Container - Landscape aspect ratio */}
@@ -112,6 +132,23 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
           ease: "easeOut"
         }}
       >
+        {previewSlotIndex !== null && !isComplete && (
+          <motion.div
+            className="absolute border-2 border-white/50 bg-white/10 rounded pointer-events-none"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1,
+              left: `${(previewSlotIndex % columns) * slotWidthPct}%`,
+              top: `${Math.floor(previewSlotIndex / columns) * slotHeightPct}%`,
+              width: `${slotWidthPct}%`,
+              height: `${slotHeightPct}%`,
+            }}
+            transition={{ duration: 0.15 }}
+            style={{ zIndex: 0 }}
+          />
+        )}
+        
         {pieces.map((piece) => (
           <PuzzlePiece 
             key={piece.id} 

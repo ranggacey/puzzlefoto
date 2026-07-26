@@ -64,7 +64,7 @@ export function PointerOverlay() {
   let displayX = handState.pointer.x;
   let displayY = handState.pointer.y;
 
-  if (gestureState.hoveredPieceId && !gestureState.pinching) {
+  if (gestureState.hoveredPieceId) {
     const piece = pieces.find(p => p.id === gestureState.hoveredPieceId);
     if (piece && !piece.isLocked) {
       const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
@@ -74,7 +74,10 @@ export function PointerOverlay() {
       const centerX = (col + 0.5) / columns;
       const centerY = (row + 0.5) / rows;
       
-      const pull = InteractionConfig.magneticStrength;
+      const pull = gestureState.pinching 
+        ? InteractionConfig.magneticStrengthGrabbed 
+        : InteractionConfig.magneticStrength;
+        
       displayX = displayX + (centerX - displayX) * pull;
       displayY = displayY + (centerY - displayY) * pull;
     }

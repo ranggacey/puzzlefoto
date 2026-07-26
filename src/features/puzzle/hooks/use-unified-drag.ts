@@ -6,6 +6,9 @@ export interface DragState {
   draggedPieceId: string | null;
   dragDeltaX: number; // in pixels
   dragDeltaY: number; // in pixels
+  currentX: number; // in pixels (clientX)
+  currentY: number; // in pixels (clientY)
+  boardRect: DOMRect | null;
 }
 
 interface UseUnifiedDragProps {
@@ -19,6 +22,9 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
     draggedPieceId: null,
     dragDeltaX: 0,
     dragDeltaY: 0,
+    currentX: 0,
+    currentY: 0,
+    boardRect: null,
   });
 
   const startPos = useRef({ x: 0, y: 0 });
@@ -31,8 +37,11 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
       draggedPieceId: pieceId,
       dragDeltaX: 0,
       dragDeltaY: 0,
+      currentX: clientX,
+      currentY: clientY,
+      boardRect: boardRef.current ? boardRef.current.getBoundingClientRect() : null,
     });
-  }, []);
+  }, [boardRef]);
 
   // Generic handler for pointer move
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
@@ -42,6 +51,8 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
         ...prev,
         dragDeltaX: clientX - startPos.current.x,
         dragDeltaY: clientY - startPos.current.y,
+        currentX: clientX,
+        currentY: clientY,
       };
     });
   }, []);
@@ -57,6 +68,9 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
         draggedPieceId: null,
         dragDeltaX: 0,
         dragDeltaY: 0,
+        currentX: 0,
+        currentY: 0,
+        boardRect: null,
       };
     });
   }, [onDrop]);
