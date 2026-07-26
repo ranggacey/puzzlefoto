@@ -5,6 +5,7 @@ import { PuzzleDifficulty, DIFFICULTY_PRESETS } from "../constants/puzzle-diffic
 import { PuzzlePiece } from "./puzzle-piece";
 import { usePuzzleStore } from "@/store/puzzle-store";
 import type { PanInfo } from "motion/react";
+import { motion } from "motion/react";
 
 interface PuzzleBoardProps {
   pieces: PuzzlePieceType[];
@@ -15,6 +16,7 @@ interface PuzzleBoardProps {
 export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProps) {
   const boardRef = React.useRef<HTMLDivElement>(null);
   const movePieceToSlot = usePuzzleStore((state) => state.movePieceToSlot);
+  const isComplete = usePuzzleStore((state) => state.isComplete);
 
   const handlePieceDragEnd = React.useCallback(
     (pieceId: string, info: PanInfo) => {
@@ -51,7 +53,18 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
   return (
     <div className="relative w-full max-w-4xl aspect-[4/3] mx-auto flex items-center justify-center p-4 sm:p-8">
       {/* Pieces Container - Landscape aspect ratio */}
-      <div ref={boardRef} className="relative w-full h-full">
+      <motion.div 
+        ref={boardRef} 
+        className="relative w-full h-full"
+        animate={{
+          scale: isComplete ? 1.02 : 1,
+          filter: isComplete ? "drop-shadow(0 20px 30px rgba(255,255,255,0.2)) drop-shadow(0 0 40px rgba(255,255,255,0.1))" : "none",
+        }}
+        transition={{
+          duration: 0.8,
+          ease: "easeOut"
+        }}
+      >
         {pieces.map((piece) => (
           <PuzzlePiece 
             key={piece.id} 
@@ -62,7 +75,7 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
             onPieceDragEnd={handlePieceDragEnd}
           />
         ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

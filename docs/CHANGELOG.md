@@ -4,6 +4,12 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.4] - Victory Experience & Session Flow
+- Implemented a delayed, decoupled victory presentation state without polluting the underlying gameplay mechanics.
+- Finalized visual hierarchy for locked puzzle pieces (full opacity, no border, subtle glow) combined with a unified board scale-up animation.
+- Created `PuzzleCompletedOverlay` rendering post-game statistics (Difficulty, Moves, Time) and session controls.
+- Integrated `Play Again`, `New Photo`, and `Back to Home` actions while strictly preserving `PuzzleCameraProvider` MediaStream lifetimes.
+
 ## [Sprint 5.3.1] - Drag Cancellation & Swap Validation
 - Enforced strict grid alignment by treating drag transforms as temporary visual offsets (`dragSnapToOrigin=true`).
 - Ensured invalid interactions (dropping outside board, dropping on locked pieces) smoothly animate pieces back to their original slots.

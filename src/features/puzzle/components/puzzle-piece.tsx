@@ -56,7 +56,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       opacity: 1,
       scale: 1,
       zIndex: 1,
-      filter: "drop-shadow(0 0 8px rgba(255,255,255,0.4))",
+      filter: "drop-shadow(0 0 12px rgba(255,255,255,0.3)) drop-shadow(0 0 4px rgba(255,255,255,0.5))",
     },
   };
 
@@ -81,7 +81,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
           onPieceDragEnd(piece.id, info);
         }
       }}
-      className={`absolute overflow-hidden border border-white/20 rounded-sm ${!piece.isLocked ? "cursor-grab active:cursor-grabbing" : ""}`}
+      className={`absolute overflow-hidden rounded-sm ${!piece.isLocked ? "border border-white/20 cursor-grab active:cursor-grabbing" : ""}`}
       style={{
         width: `${widthPercent}%`,
         height: `${heightPercent}%`,

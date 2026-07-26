@@ -39,6 +39,10 @@ interface PuzzleState {
   isTimerRunning: boolean;
   /** Puzzle generation state */
   generationState: LoadingState;
+  /** Timestamp when puzzle started */
+  startedAt: number | null;
+  /** Timestamp when puzzle was completed */
+  completedAt: number | null;
 
   // Actions
   setPieces: (pieces: PuzzlePiece[]) => void;
@@ -53,6 +57,8 @@ interface PuzzleState {
   setGenerationState: (state: LoadingState) => void;
   generatePuzzle: (sourceImage: CapturedPhoto) => void;
   movePieceToSlot: (pieceId: string, targetSlotIndex: number) => void;
+  restartPuzzle: () => void;
+  completePuzzle: () => void;
   reset: () => void;
 }
 
@@ -67,6 +73,8 @@ const initialPuzzleState = {
   elapsedTime: 0,
   isTimerRunning: false,
   generationState: "idle" as const,
+  startedAt: null,
+  completedAt: null,
 };
 
 export const usePuzzleStore = create<PuzzleState>((set, get) => ({
@@ -88,7 +96,15 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     set({ generationState: "loading" });
     try {
       const pieces = PuzzleGenerator.generate(sourceImage, { difficulty });
-      set({ pieces, generationState: "success" });
+      set({ 
+        pieces, 
+        generationState: "success",
+        startedAt: Date.now(),
+        completedAt: null,
+        moveCount: 0,
+        isComplete: false,
+        scene: "gameplay",
+      });
     } catch (err) {
       console.error("Failed to generate puzzle:", err);
       set({ generationState: "error" });
@@ -128,7 +144,27 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     // Internal check win
     const allLocked = newPieces.every(p => p.isLocked);
     if (allLocked && newPieces.length > 0) {
-      set({ isComplete: true, scene: "completed" });
+      get().completePuzzle();
+    }
+  },
+
+  completePuzzle: () => {
+    set({ 
+      isComplete: true, 
+      completedAt: Date.now(),
+      isTimerRunning: false 
+    });
+    
+    // Victory presentation delay
+    setTimeout(() => {
+      set({ scene: "completed" });
+    }, 500);
+  },
+
+  restartPuzzle: () => {
+    const { sourceImage } = get();
+    if (sourceImage) {
+      get().generatePuzzle(sourceImage);
     }
   },
 

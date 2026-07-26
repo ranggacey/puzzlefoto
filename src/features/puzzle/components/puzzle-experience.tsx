@@ -8,6 +8,7 @@ import { CaptureOverlay } from "./capture-overlay";
 import { FloatingPhoto } from "./floating-photo";
 import { PuzzleBoard } from "./puzzle-board";
 import { DifficultySelectionOverlay } from "./difficulty-selection-overlay";
+import { PuzzleCompletedOverlay } from "./puzzle-completed-overlay";
 import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
 
 export function PuzzleExperience() {
@@ -83,18 +84,7 @@ export function PuzzleExperience() {
         )}
 
         {scene === "completed" && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
-            <div className="rounded-3xl bg-black/80 p-8 text-center border border-white/20 shadow-2xl">
-              <h2 className="text-3xl font-bold text-white mb-2">Puzzle Completed</h2>
-              <p className="text-white/70">Victory experience will be implemented in Sprint 5.4.</p>
-              <button 
-                onClick={reset}
-                className="mt-6 px-6 py-2 bg-primary text-primary-foreground font-medium rounded-xl hover:bg-primary/90 transition-colors"
-              >
-                Play Again
-              </button>
-            </div>
-          </div>
+          <PuzzleCompletedOverlay />
         )}
       </PuzzleStage>
     </FullscreenLayout>
