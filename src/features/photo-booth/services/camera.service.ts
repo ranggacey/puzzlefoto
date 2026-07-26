@@ -117,6 +117,13 @@ class CameraService {
   }
 
   /**
+   * Get the currently active stream.
+   */
+  getActiveStream(): MediaStream | null {
+    return this.activeStream;
+  }
+
+  /**
    * Get supported constraints by the browser.
    */
   getSupportedConstraints(): MediaTrackSupportedConstraints {

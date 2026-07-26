@@ -2,9 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ArrowLeft } from "lucide-react";
 import { useCamera } from "@/features/photo-booth/hooks/use-camera";
-import { useCameraDevices } from "@/features/photo-booth/hooks/use-camera-devices";
 import { useCountdown } from "@/features/photo-booth/hooks/use-countdown";
-import { captureService } from "@/features/photo-booth/services/capture.service";
 import { COUNTDOWN_OPTIONS, CountdownOption } from "@/features/photo-booth/constants/camera";
 import type { CaptureModeConfig, CapturedPhoto } from "@/types";
 
@@ -23,33 +21,13 @@ interface PhotoStageProps {
 }
 
 export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack }: PhotoStageProps) {
-  const {
-    startCamera,
-    stopCamera, // Ensure this is available from useCamera
-    toggleFacingMode,
-    permissionStatus,
-    activeStream,
-    facingMode,
-  } = useCamera();
-
-  const { devices } = useCameraDevices();
-  const hasMultipleCameras = devices.length > 1;
+  const camera = useCamera();
 
   const [flashActive, setFlashActive] = useState(false);
   const [isCapturingFrame, setIsCapturingFrame] = useState(false);
   const [latestThumbnail, setLatestThumbnail] = useState<string | null>(null);
 
-  // Auto-request permission or start camera on mount
-  useEffect(() => {
-    if (permissionStatus === "prompt" || (permissionStatus === "granted" && !activeStream)) {
-      startCamera();
-    }
-  }, [permissionStatus, activeStream, startCamera]);
-
   const handleCaptureAction = useCallback(async () => {
-    const videoElement = document.querySelector("video");
-    if (!videoElement) return;
-
     setIsCapturingFrame(true);
     setFlashActive(true);
     
@@ -57,26 +35,30 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
     await new Promise((res) => setTimeout(res, 50));
 
     try {
-      const dataUrl = await captureService.captureFrame(videoElement, {
-        format: "dataUrl",
-        mirror: config.allowMirror && facingMode === "user",
-      });
+      const dataUrl = await camera.capture();
       
-      if (typeof dataUrl === "string") {
+      if (dataUrl) {
+        // We need dimensions. Wait, capture() gives us a dataUrl.
+        // We can create an image to get dimensions, or hardcode for now, or have capture() return them.
+        // Let's create an image to get intrinsic dimensions quickly.
+        const img = new Image();
+        img.src = dataUrl;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+
         const photo: CapturedPhoto = {
           id: uuidv4(),
           image: dataUrl,
           timestamp: Date.now(),
-          width: videoElement.videoWidth,
-          height: videoElement.videoHeight,
+          width: img.width,
+          height: img.height,
         };
         
         onPhotoCaptured(photo);
         
-        // Show thumbnail animation if multi-capture
         if (config.requiredPhotos > 1) {
           setLatestThumbnail(dataUrl);
-          // Hide thumbnail after animation completes so it doesn't block UI forever
           setTimeout(() => setLatestThumbnail(null), 1500); 
         }
       }
@@ -86,7 +68,7 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
       setIsCapturingFrame(false);
       setTimeout(() => setFlashActive(false), 500);
     }
-  }, [facingMode, config, onPhotoCaptured]);
+  }, [camera, config, onPhotoCaptured]);
 
   const {
     activeCountdown,
@@ -95,7 +77,6 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
     startCountdown,
   } = useCountdown(handleCaptureAction);
 
-  // For multi-capture, automatically start the next countdown after a brief pause
   useEffect(() => {
     if (
       config.requiredPhotos > 1 && 
@@ -105,7 +86,6 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
       !isCapturingFrame && 
       countdownValue === null
     ) {
-      // Small delay before starting next capture
       const timer = setTimeout(() => {
         startCountdown();
       }, 2000);
@@ -113,39 +93,38 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
     }
   }, [currentPhotoCount, config.requiredPhotos, flashActive, isCapturingFrame, countdownValue, startCountdown]);
 
-
   const toggleCountdown = () => {
     const currentIndex = COUNTDOWN_OPTIONS.indexOf(activeCountdown as CountdownOption);
     const nextIndex = (currentIndex + 1) % COUNTDOWN_OPTIONS.length;
     setActiveCountdown(COUNTDOWN_OPTIONS[nextIndex]);
   };
 
-  if (permissionStatus === "denied") {
-    return <PermissionScreen onGrantPermission={startCamera} isDenied />;
+  if (camera.state === "ERROR" || camera.state === "REQUESTING_PERMISSION") {
+    // If we had a specific permission status we could render PermissionScreen. 
+    // If it's an error, we show error.
+    if (camera.error?.includes("denied")) {
+      return <PermissionScreen onGrantPermission={camera.start} isDenied />;
+    }
+    // Just a fallback
   }
 
-  if (permissionStatus === "prompt") {
+  if (camera.state === "IDLE" || camera.state === "STARTING") {
     return <div className="absolute inset-0 bg-background" />;
   }
-
-  const handleBackClick = () => {
-    stopCamera();
-    onBack();
-  };
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-black">
       
-      {/* Back Button */}
       <button 
-        onClick={handleBackClick}
+        onClick={onBack}
         className="absolute left-6 top-6 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-background/50 text-foreground backdrop-blur-md transition-colors hover:bg-background/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         aria-label="Back to Mode Selection"
       >
         <ArrowLeft className="h-5 w-5" />
       </button>
 
-      <CameraPreview stream={activeStream} facingMode={facingMode} />
+      {/* Note: CameraPreview now takes no stream, it just gets it via attachVideo */}
+      <CameraPreview facingMode={camera.facingMode} />
       
       <FlashOverlay isActive={flashActive} />
       
@@ -159,8 +138,8 @@ export function PhotoStage({ config, onPhotoCaptured, currentPhotoCount, onBack 
       
       <CameraControls
         onCapture={startCountdown}
-        onSwitchCamera={toggleFacingMode}
-        hasMultipleCameras={hasMultipleCameras}
+        onSwitchCamera={camera.switchCamera}
+        hasMultipleCameras={camera.devices.length > 1}
         activeCountdown={activeCountdown}
         onToggleCountdown={toggleCountdown}
         isCapturing={isCapturingFrame || countdownValue !== null}

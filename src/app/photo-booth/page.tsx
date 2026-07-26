@@ -7,6 +7,7 @@ import { CaptureModeSelector } from "@/features/photo-booth/components/capture-m
 import { PhotoStage } from "@/features/photo-booth/components/photo-stage";
 import { ResultPreview } from "@/features/photo-booth/components/result-preview";
 import { CapturedPhoto, CaptureMode } from "@/types";
+import { useCamera } from "@/features/photo-booth/hooks/use-camera";
 
 export default function PhotoBoothPage() {
   const { 
@@ -17,7 +18,7 @@ export default function PhotoBoothPage() {
     clearPhotos 
   } = useCaptureStore();
 
-  // Local state for the mode selector before they hit "Start Camera"
+  const camera = useCamera();
   const [draftMode, setDraftMode] = useState<CaptureMode | null>(mode);
 
   const handleSelectMode = useCallback((modeId: CaptureMode) => {
@@ -28,8 +29,9 @@ export default function PhotoBoothPage() {
     if (draftMode) {
       setMode(draftMode);
       clearPhotos();
+      camera.start();
     }
-  }, [draftMode, setMode, clearPhotos]);
+  }, [draftMode, setMode, clearPhotos, camera]);
 
   const handlePhotoCaptured = useCallback((photo: CapturedPhoto) => {
     addPhoto(photo);
@@ -37,12 +39,14 @@ export default function PhotoBoothPage() {
 
   const handleRetakeAll = useCallback(() => {
     clearPhotos();
+    // No need to call camera.start() here because the camera never stopped!
   }, [clearPhotos]);
 
   const handleBackToModeSelection = useCallback(() => {
     setMode(null);
     clearPhotos();
-  }, [setMode, clearPhotos]);
+    camera.stop();
+  }, [setMode, clearPhotos, camera]);
 
   // 1. Capture Mode Selection
   if (!mode) {

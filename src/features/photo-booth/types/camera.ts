@@ -46,3 +46,30 @@ export class NotReadableError extends CameraError {
     this.name = "NotReadableError";
   }
 }
+
+export type CameraState =
+  | "IDLE"
+  | "REQUESTING_PERMISSION"
+  | "STARTING"
+  | "READY"
+  | "CAPTURING"
+  | "PREVIEW"
+  | "STOPPING"
+  | "STOPPED"
+  | "ERROR";
+
+export interface CameraContextType {
+  state: CameraState;
+  devices: CameraDevice[];
+  deviceId: string | null;
+  facingMode: FacingMode;
+  error: string | null;
+  
+  start: () => Promise<void>;
+  stop: () => void;
+  restart: () => Promise<void>;
+  capture: () => Promise<string | null>;
+  switchCamera: () => void;
+  attachVideo: (videoElement: HTMLVideoElement | null) => void;
+}
+

@@ -1,35 +1,26 @@
 import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
+import { useCamera } from "@/features/photo-booth/hooks/use-camera";
+import { FacingMode } from "@/features/photo-booth/types/camera";
 
 interface CameraPreviewProps {
-  stream: MediaStream | null;
-  facingMode: "user" | "environment";
+  facingMode: FacingMode;
   className?: string;
 }
 
-export function CameraPreview({ stream, facingMode, className }: CameraPreviewProps) {
+export function CameraPreview({ facingMode, className }: CameraPreviewProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const camera = useCamera();
 
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
+    // Attach the video element to the CameraProvider
+    camera.attachVideo(videoRef.current);
 
-    if (stream) {
-      videoElement.srcObject = stream;
-      
-      // Attempt to auto-play to prevent black screens on some devices
-      const playPromise = videoElement.play();
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.warn("Auto-play was prevented or interrupted:", error);
-        });
-      }
-    } else {
-      videoElement.srcObject = null;
-    }
-  }, [stream]);
-
-  if (!stream) return null;
+    // Detach on unmount
+    return () => {
+      camera.attachVideo(null);
+    };
+  }, [camera]);
 
   return (
     <video
