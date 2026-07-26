@@ -4,11 +4,15 @@ import React, { createContext, useContext, useEffect, useState, useRef } from "r
 import { usePuzzleCameraContext } from "@/features/puzzle/providers/puzzle-camera-provider";
 import { handTrackingService } from "../services/hand-tracking-service";
 import { PointerSmoothing } from "../services/pointer-smoothing";
+import { GestureRecognizer } from "../services/gesture-recognizer";
 import type { HandState } from "../types/hand-state";
+import type { GestureState, HitTester, NormalizedPointerEvent } from "../types/gesture-state";
 
 interface HandTrackingContextType {
   isReady: boolean;
   handState: HandState;
+  gestureState: GestureState;
+  registerGestureCallbacks: (onEvent: (e: NormalizedPointerEvent) => void, hitTester: HitTester) => void;
 }
 
 const initialHandState: HandState = {
@@ -20,15 +24,30 @@ const initialHandState: HandState = {
   pinch: false,
 };
 
+const initialGestureState: GestureState = {
+  hovering: false,
+  pinching: false,
+  phase: "idle",
+};
+
 const HandTrackingContext = createContext<HandTrackingContextType | null>(null);
 
 export function HandTrackingProvider({ children }: { children: React.ReactNode }) {
   const camera = usePuzzleCameraContext();
   const [isReady, setIsReady] = useState(false);
   const [handState, setHandState] = useState<HandState>(initialHandState);
+  const [gestureState, setGestureState] = useState<GestureState>(initialGestureState);
   
   const animationFrameRef = useRef<number | null>(null);
   const pointerSmoothing = useRef(new PointerSmoothing(0.3));
+  const gestureRecognizer = useRef(new GestureRecognizer());
+
+  const registerGestureCallbacks = React.useCallback((
+    onEvent: (e: NormalizedPointerEvent) => void,
+    hitTester: HitTester
+  ) => {
+    gestureRecognizer.current.setCallbacks(onEvent, hitTester);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -70,7 +89,7 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
         
         if (result && result.landmarks && result.landmarks.length > 0) {
           const landmarks = result.landmarks[0];
-          const handedness = result.handedness[0]?.[0]?.categoryName === "Left" ? "left" : "right";
+          const handedness = (result.handedness[0]?.[0]?.categoryName === "Left" ? "left" : "right") as "left" | "right";
           const confidence = result.handedness[0]?.[0]?.score ?? 0;
           
           // Index finger tip is landmark 8
@@ -84,18 +103,27 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
           
           const smoothed = pointerSmoothing.current.smooth(rawX, rawY);
 
-          setHandState({
+          const newState = {
             detected: true,
             pointer: smoothed,
             landmarks,
             handedness,
             confidence,
-            pinch: false, // Prep for future sprint
-          });
+            pinch: false, // Legacy field
+          };
+          
+          setHandState(newState);
+
+          // Process gestures
+          const gState = gestureRecognizer.current.process(newState, performance.now());
+          setGestureState(gState);
         } else {
           // No hand detected
           pointerSmoothing.current.reset();
-          setHandState(prev => prev.detected ? { ...prev, detected: false } : prev);
+          const emptyState = { ...initialHandState, detected: false };
+          setHandState(emptyState);
+          const gState = gestureRecognizer.current.process(emptyState, performance.now());
+          setGestureState(gState);
         }
       }
       
@@ -112,7 +140,7 @@ export function HandTrackingProvider({ children }: { children: React.ReactNode }
   }, [isReady, camera]);
 
   return (
-    <HandTrackingContext.Provider value={{ isReady, handState }}>
+    <HandTrackingContext.Provider value={{ isReady, handState, gestureState, registerGestureCallbacks }}>
       {children}
     </HandTrackingContext.Provider>
   );

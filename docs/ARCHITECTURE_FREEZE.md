@@ -165,6 +165,22 @@ AI Models (Background Segmentation, Hand Tracking, Gesture Recognition, and futu
 - **Framework Agnostic**: Core processing does not rely on React components.
 - **Processing Only**: They own inference and processing. They never own UI, never manage routing, and never own application state.
 
+### Gesture Recognition
+
+Gesture Recognition is an interpretation layer positioned between Hand Tracking and gameplay.
+
+Responsibilities:
+- interpret raw hand landmarks;
+- detect gestures;
+- emit standardized pointer events.
+
+Gesture Recognition must:
+- never manipulate Puzzle Store state;
+- never render UI;
+- never own application state.
+
+Its sole purpose is to convert AI tracking into input events consumable by gameplay systems.
+
 ### Pointer Rendering
 
 The visual pointer is a presentation layer built on top of normalized hand tracking data.

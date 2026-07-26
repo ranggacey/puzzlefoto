@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useHandTracking } from "../providers/hand-tracking-provider";
+import { usePuzzleStore } from "@/store/puzzle-store";
+import { DIFFICULTY_PRESETS } from "@/features/puzzle/constants/puzzle-difficulty";
 
 interface TrailPoint {
   id: number;
@@ -12,8 +14,12 @@ interface TrailPoint {
 }
 
 export function PointerOverlay() {
-  const { handState, isReady } = useHandTracking();
+  const { handState, gestureState, isReady } = useHandTracking();
   const [trail, setTrail] = useState<TrailPoint[]>([]);
+  const [ripple, setRipple] = useState<{ id: number, x: number, y: number } | null>(null);
+
+  const pieces = usePuzzleStore(state => state.pieces);
+  const difficulty = usePuzzleStore(state => state.difficulty);
 
   // Keep a motion trail
   useEffect(() => {
@@ -39,11 +45,42 @@ export function PointerOverlay() {
     }
   }, [handState]);
 
+  // Handle Drop Ripple
+  useEffect(() => {
+    if (gestureState.phase === "pinch-end") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setRipple({
+        id: Date.now(),
+        x: handState.pointer.x,
+        y: handState.pointer.y
+      });
+    }
+  }, [gestureState.phase, handState.pointer.x, handState.pointer.y]);
+
   if (!isReady) return null;
 
-  // We define the styles here as classes to prepare for future states.
-  // For now, it will always be "idle" visually since hover/grab are not linked to gameplay yet.
-  const cursorState: "idle" | "hover" | "grab" = "idle";
+  // Calculate magnetic pointer
+  let displayX = handState.pointer.x;
+  let displayY = handState.pointer.y;
+
+  if (gestureState.hoveredPieceId && !gestureState.pinching) {
+    const piece = pieces.find(p => p.id === gestureState.hoveredPieceId);
+    if (piece && !piece.isLocked) {
+      const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
+      const col = piece.currentSlotIndex % columns;
+      const row = Math.floor(piece.currentSlotIndex / columns);
+      
+      const centerX = (col + 0.5) / columns;
+      const centerY = (row + 0.5) / rows;
+      
+      // Pull 50% toward the center
+      displayX = displayX + (centerX - displayX) * 0.5;
+      displayY = displayY + (centerY - displayY) * 0.5;
+    }
+  }
+
+  const cursorState = (gestureState.phase === "pinching" || gestureState.phase === "pinch-start") ? "grab" :
+                      gestureState.phase === "hover" ? "hover" : "idle";
   
   let cursorClasses = "rounded-full bg-white transition-all duration-150 ease-out ";
   let blurClasses = "rounded-full bg-cyan-400/50 blur-md absolute inset-0 ";
@@ -73,7 +110,7 @@ export function PointerOverlay() {
                   style={{
                     left: `${point.x * 100}%`,
                     top: `${point.y * 100}%`,
-                    opacity: opacity * 0.5,
+                    opacity: opacity * (cursorState === "grab" ? 0.8 : 0.5),
                   }}
                 />
               );
@@ -87,16 +124,31 @@ export function PointerOverlay() {
               transition={{ duration: 0.15 }}
               className="absolute -ml-2.5 -mt-2.5 flex items-center justify-center pointer-events-none"
               style={{
-                left: `${handState.pointer.x * 100}%`,
-                top: `${handState.pointer.y * 100}%`,
+                left: `${displayX * 100}%`,
+                top: `${displayY * 100}%`,
               }}
             >
               <div className={blurClasses} />
               <div className={cursorClasses} />
-              
-              {/* Ripple Preparation (Hidden/Unused for now) */}
-              <div className="absolute inset-0 rounded-full border border-white opacity-0 scale-50" />
             </motion.div>
+            
+            {/* Drop Ripple */}
+            <AnimatePresence>
+              {ripple && (
+                <motion.div
+                  key={ripple.id}
+                  initial={{ opacity: 1, scale: 0 }}
+                  animate={{ opacity: 0, scale: 4 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  className="absolute -ml-6 -mt-6 w-12 h-12 rounded-full border-2 border-white pointer-events-none"
+                  style={{
+                    left: `${ripple.x * 100}%`,
+                    top: `${ripple.y * 100}%`,
+                  }}
+                />
+              )}
+            </AnimatePresence>
           </>
         )}
       </AnimatePresence>

@@ -4,8 +4,9 @@ import type { CapturedPhoto } from "@/types";
 import { PuzzleDifficulty, DIFFICULTY_PRESETS } from "../constants/puzzle-difficulty";
 import { PuzzlePiece } from "./puzzle-piece";
 import { usePuzzleStore } from "@/store/puzzle-store";
-import type { PanInfo } from "motion/react";
 import { motion } from "motion/react";
+import { useUnifiedDrag } from "../hooks/use-unified-drag";
+import { useHandTracking } from "@/features/hand-tracking/providers/hand-tracking-provider";
 
 interface PuzzleBoardProps {
   pieces: PuzzlePieceType[];
@@ -17,36 +18,56 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
   const boardRef = React.useRef<HTMLDivElement>(null);
   const movePieceToSlot = usePuzzleStore((state) => state.movePieceToSlot);
   const isComplete = usePuzzleStore((state) => state.isComplete);
+  const { registerGestureCallbacks, gestureState } = useHandTracking();
 
-  const handlePieceDragEnd = React.useCallback(
-    (pieceId: string, info: PanInfo) => {
+  const handleDrop = React.useCallback(
+    (pieceId: string, clientX: number, clientY: number) => {
       if (!boardRef.current) return;
-
       const rect = boardRef.current.getBoundingClientRect();
-      const x = info.point.x - rect.left;
-      const y = info.point.y - rect.top;
+      const x = clientX - rect.left;
+      const y = clientY - rect.top;
 
-      // Ensure drop is within board bounds
       if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
         return;
       }
 
       const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
-
-      // Calculate which slot the center of the dragged pointer is over
       const col = Math.floor((x / rect.width) * columns);
       const row = Math.floor((y / rect.height) * rows);
 
-      // Clamp to be safe
       const safeCol = Math.max(0, Math.min(col, columns - 1));
       const safeRow = Math.max(0, Math.min(row, rows - 1));
       
       const targetSlotIndex = safeRow * columns + safeCol;
-      
       movePieceToSlot(pieceId, targetSlotIndex);
     },
     [difficulty, movePieceToSlot]
   );
+
+  const { dragState, handlePointerDown, feedSyntheticEvent } = useUnifiedDrag({
+    boardRef,
+    onDrop: handleDrop,
+  });
+
+  // Register with Hand Tracking
+  React.useEffect(() => {
+    registerGestureCallbacks(
+      feedSyntheticEvent,
+      {
+        hitTest: (x, y) => {
+          const { columns, rows } = DIFFICULTY_PRESETS[difficulty];
+          const col = Math.floor(x * columns);
+          const row = Math.floor(y * rows);
+          const safeCol = Math.max(0, Math.min(col, columns - 1));
+          const safeRow = Math.max(0, Math.min(row, rows - 1));
+          const targetSlotIndex = safeRow * columns + safeCol;
+          
+          const piece = pieces.find(p => p.currentSlotIndex === targetSlotIndex);
+          return piece?.isLocked ? undefined : piece?.id;
+        }
+      }
+    );
+  }, [registerGestureCallbacks, feedSyntheticEvent, difficulty, pieces]);
 
   if (!sourceImage) return null;
 
@@ -71,8 +92,9 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
             piece={piece} 
             sourceImage={sourceImage}
             difficulty={difficulty}
-            dragConstraints={boardRef}
-            onPieceDragEnd={handlePieceDragEnd}
+            dragState={dragState}
+            isHovered={gestureState.hoveredPieceId === piece.id}
+            onPointerDown={handlePointerDown}
           />
         ))}
       </motion.div>

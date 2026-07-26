@@ -4,6 +4,12 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.6] - Gesture Recognition & Hand-Controlled Interaction
+- Developed a decoupled `GestureRecognizer` interpreting AI hand landmarks into stable, debounced pinch and hover events.
+- Refactored `PuzzleBoard` and `PuzzlePiece` with a newly created `useUnifiedDrag` hook, establishing a unified input pipeline where synthetic AI gestures and native mouse events seamlessly coexist.
+- Implemented presentation-layer Magnetic Hover Assistance within `PointerOverlay`, smoothly easing the cursor toward valid pieces.
+- Added visual states mapping to AI gestures including hover enlargement, grab enlargement, and drop ripple effects without polling the PuzzleEngine state directly.
+
 ## [Sprint 5.5] - Hand Tracking Foundation
 - Integrated MediaPipe Tasks Vision (`@mediapipe/tasks-vision`) to run hand tracking inference.
 - Created `HandTrackingProvider` to intercept the existing `PuzzleCameraProvider` MediaStream and execute an unblocking `requestAnimationFrame` loop.

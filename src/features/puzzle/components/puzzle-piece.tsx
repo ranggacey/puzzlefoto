@@ -3,22 +3,24 @@ import { motion } from "motion/react";
 import type { PuzzlePiece as PuzzlePieceType } from "../types/puzzle-piece";
 import type { CapturedPhoto } from "@/types";
 import { DIFFICULTY_PRESETS, PuzzleDifficulty } from "../constants/puzzle-difficulty";
-import type { PanInfo } from "motion/react";
+import type { DragState } from "../hooks/use-unified-drag";
 
 interface PuzzlePieceProps {
   piece: PuzzlePieceType;
   sourceImage: CapturedPhoto;
   difficulty: PuzzleDifficulty;
-  dragConstraints?: React.RefObject<Element | null>;
-  onPieceDragEnd?: (pieceId: string, info: PanInfo) => void;
+  dragState: DragState;
+  isHovered: boolean;
+  onPointerDown: (pieceId: string, clientX: number, clientY: number) => void;
 }
 
 export const PuzzlePiece = React.memo(function PuzzlePiece({ 
   piece, 
   sourceImage,
   difficulty,
-  dragConstraints,
-  onPieceDragEnd,
+  dragState,
+  isHovered,
+  onPointerDown,
 }: PuzzlePieceProps) {
   const { rows, columns } = DIFFICULTY_PRESETS[difficulty];
 
@@ -46,6 +48,12 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       zIndex: 10,
       filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
     },
+    hover: {
+      opacity: 0.9,
+      scale: 1.02,
+      zIndex: 20,
+      filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.4))",
+    },
     active: {
       opacity: 1,
       scale: 1.05,
@@ -60,25 +68,30 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
     },
   };
 
-  const [isDragging, setIsDragging] = React.useState(false);
-  const currentState = piece.isLocked ? "locked" : isDragging ? "active" : "idle";
+  const isDragging = dragState.draggedPieceId === piece.id;
+  const currentState = piece.isLocked ? "locked" : isDragging ? "active" : isHovered ? "hover" : "idle";
 
   return (
     <motion.div
       layout
       variants={pieceVariants}
       initial={false}
-      animate={currentState}
-      drag={!piece.isLocked}
-      dragConstraints={dragConstraints}
-      dragElastic={0}
-      dragMomentum={false}
-      dragSnapToOrigin={true}
-      onDragStart={() => setIsDragging(true)}
-      onDragEnd={(e, info) => {
-        setIsDragging(false);
-        if (onPieceDragEnd) {
-          onPieceDragEnd(piece.id, info);
+      animate={{
+        ...pieceVariants[currentState],
+        x: isDragging ? dragState.dragDeltaX : 0,
+        y: isDragging ? dragState.dragDeltaY : 0,
+      }}
+      transition={{
+        x: { type: "spring", stiffness: 500, damping: 50 },
+        y: { type: "spring", stiffness: 500, damping: 50 },
+        layout: { type: "spring", stiffness: 300, damping: 30 }
+      }}
+      whileHover={!piece.isLocked && !isDragging ? "hover" : undefined}
+      onPointerDown={(e) => {
+        if (!piece.isLocked) {
+          // Prevent default touch actions (e.g. scrolling on mobile)
+          e.preventDefault();
+          onPointerDown(piece.id, e.clientX, e.clientY);
         }
       }}
       className={`absolute overflow-hidden rounded-sm ${!piece.isLocked ? "border border-white/20 cursor-grab active:cursor-grabbing" : ""}`}
