@@ -4,6 +4,30 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.2.1] - Gameplay Entry Flow Refinement
+- Inserted `difficulty-selection` overlay into the Puzzle Experience orchestration.
+- Prevented automatic puzzle generation, ensuring generation only fires upon explicit confirmation.
+- Enabled native Retake flow leveraging the existing store `reset()` while strictly preserving camera lifecycle.
+- Refined the Puzzle Board to use a responsive, centered landscape layout that respects safe areas.
+- Guaranteed visual transparency of puzzle pieces by adopting `filter: drop-shadow(...)` instead of opaque box models.
+
+## [Sprint 5.2] - Puzzle Generation Engine
+- Defined the canonical `PuzzlePiece` interface and `PuzzleDifficulty` constants.
+- Created a pure `PuzzleGenerator` service for deterministic puzzle layout calculation.
+- Extended `PuzzleStore` to act as the single source of truth for the gameplay state machine and piece positions.
+- Built the `PuzzleBoard` and `PuzzlePiece` rendering components using CSS Sprite techniques for automatic scaling.
+- Updated `PuzzleExperience` to naturally transition to gameplay after the calibration scene.
+
+## [Sprint 5.1 Hotfix] - Continuous Puzzle Camera Lifecycle
+- Fixed camera restarting issues during the puzzle capture flow.
+- Refactored `PuzzleCameraProvider` to correctly own and memoize the camera lifecycle.
+- Removed lifecycle control from `LiveBackground`.
+
+## [Sprint 5.1] - Puzzle Capture Experience
+- Reorganized `CaptureService` as a shared infrastructure layer.
+- Implemented the continuous camera capture and image processing pipeline.
+- Added `CaptureOverlay`, `FloatingPhoto`, and `CalibrationOverlay` to orchestrate the scene progression.
+
 ## [Sprint 5.0.1] - Remove Legacy Puzzle Redirect
 - Aligned architecture to make Puzzle an independent experience.
 - Removed legacy redirect logic from `/puzzle` that depended on Photo Booth's `processedPhotos`.

@@ -6,9 +6,12 @@ import { PuzzleStage } from "./puzzle-stage";
 import { CalibrationOverlay } from "./calibration-overlay";
 import { CaptureOverlay } from "./capture-overlay";
 import { FloatingPhoto } from "./floating-photo";
+import { PuzzleBoard } from "./puzzle-board";
+import { DifficultySelectionOverlay } from "./difficulty-selection-overlay";
+import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
 
 export function PuzzleExperience() {
-  const { scene, sourceImage, setScene, setSourceImage } = usePuzzleStore();
+  const { scene, sourceImage, pieces, difficulty, setScene, setSourceImage, setDifficulty, generatePuzzle, reset } = usePuzzleStore();
   const camera = usePuzzleCameraContext();
 
   const handleCapture = async () => {
@@ -16,13 +19,14 @@ export function PuzzleExperience() {
     const photoDataUrl = await camera.capture();
     
     if (photoDataUrl) {
-      setSourceImage({
+      const newSourceImage = {
         id: crypto.randomUUID(),
         image: photoDataUrl,
         width: 1080,
         height: 1920,
         timestamp: Date.now()
-      });
+      };
+      setSourceImage(newSourceImage);
       setScene("freeze");
       
       // Scene Orchestration
@@ -30,11 +34,27 @@ export function PuzzleExperience() {
         setScene("floating");
         setTimeout(() => {
           setScene("calibration");
+          // Simulate calibration finish to transition to difficulty selection
+          setTimeout(() => {
+            setScene("difficulty-selection");
+          }, 3000);
         }, 1200);
       }, 800);
     } else {
       setScene("camera"); // revert if capture failed
     }
+  };
+
+  const handleContinue = (selectedDifficulty: PuzzleDifficulty) => {
+    if (sourceImage) {
+      setDifficulty(selectedDifficulty);
+      generatePuzzle(sourceImage);
+      setScene("gameplay");
+    }
+  };
+
+  const handleRetake = () => {
+    reset();
   };
 
   return (
@@ -52,6 +72,14 @@ export function PuzzleExperience() {
 
         {scene === "calibration" && (
           <CalibrationOverlay />
+        )}
+
+        {scene === "difficulty-selection" && (
+          <DifficultySelectionOverlay onContinue={handleContinue} onRetake={handleRetake} />
+        )}
+
+        {scene === "gameplay" && (
+          <PuzzleBoard pieces={pieces} sourceImage={sourceImage} difficulty={difficulty} />
         )}
       </PuzzleStage>
     </FullscreenLayout>

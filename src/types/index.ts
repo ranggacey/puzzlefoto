@@ -45,15 +45,7 @@ export type GestureType =
   | "open-palm"
   | "thumbs-up";
 
-/** Puzzle piece representation */
-export interface PuzzlePiece {
-  id: number;
-  currentRow: number;
-  currentCol: number;
-  correctRow: number;
-  correctCol: number;
-  isPlaced: boolean;
-}
+
 
 /** 2D coordinate point */
 export interface Point {

@@ -1,23 +1,27 @@
 import { create } from "zustand";
-import type { LoadingState, PuzzlePiece, CapturedPhoto } from "@/types";
-import type { PuzzleDifficulty } from "@/types/puzzle";
+import type { LoadingState, CapturedPhoto } from "@/types";
+import { PuzzlePiece } from "@/features/puzzle/types/puzzle-piece";
+import { PuzzleDifficulty } from "@/features/puzzle/constants/puzzle-difficulty";
+import { PuzzleGenerator } from "@/features/puzzle/services/puzzle-generator";
 
 export type PuzzleScene =
   | "camera"
   | "capturing"
   | "freeze"
   | "floating"
-  | "calibration";
+  | "calibration"
+  | "difficulty-selection"
+  | "gameplay";
 
 // ============================================================
-// Puzzle Store (shell for future implementation)
+// Puzzle Store
 // ============================================================
 
 interface PuzzleState {
   /** Puzzle pieces array */
   pieces: PuzzlePiece[];
   /** Currently selected/held piece */
-  selectedPieceId: number | null;
+  selectedPieceId: string | null;
   /** Puzzle grid dimensions */
   difficulty: PuzzleDifficulty;
   /** Puzzle scene state */
@@ -37,7 +41,7 @@ interface PuzzleState {
 
   // Actions
   setPieces: (pieces: PuzzlePiece[]) => void;
-  setSelectedPiece: (id: number | null) => void;
+  setSelectedPiece: (id: string | null) => void;
   setDifficulty: (difficulty: PuzzleDifficulty) => void;
   setScene: (scene: PuzzleScene) => void;
   setSourceImage: (photo: CapturedPhoto | null) => void;
@@ -46,13 +50,14 @@ interface PuzzleState {
   setElapsedTime: (time: number) => void;
   setTimerRunning: (running: boolean) => void;
   setGenerationState: (state: LoadingState) => void;
+  generatePuzzle: (sourceImage: CapturedPhoto) => void;
   reset: () => void;
 }
 
 const initialPuzzleState = {
   pieces: [],
   selectedPieceId: null,
-  difficulty: "medium" as const,
+  difficulty: "easy" as const,
   scene: "camera" as const,
   sourceImage: null,
   isComplete: false,
@@ -62,7 +67,7 @@ const initialPuzzleState = {
   generationState: "idle" as const,
 };
 
-export const usePuzzleStore = create<PuzzleState>((set) => ({
+export const usePuzzleStore = create<PuzzleState>((set, get) => ({
   ...initialPuzzleState,
 
   setPieces: (pieces) => set({ pieces }),
@@ -75,5 +80,18 @@ export const usePuzzleStore = create<PuzzleState>((set) => ({
   setElapsedTime: (time) => set({ elapsedTime: time }),
   setTimerRunning: (running) => set({ isTimerRunning: running }),
   setGenerationState: (state) => set({ generationState: state }),
+  
+  generatePuzzle: (sourceImage: CapturedPhoto) => {
+    const { difficulty } = get();
+    set({ generationState: "loading" });
+    try {
+      const pieces = PuzzleGenerator.generate(sourceImage, { difficulty });
+      set({ pieces, generationState: "success" });
+    } catch (err) {
+      console.error("Failed to generate puzzle:", err);
+      set({ generationState: "error" });
+    }
+  },
+
   reset: () => set(initialPuzzleState),
 }));
