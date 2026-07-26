@@ -100,7 +100,7 @@ export function PhotoBoothHeroAnimation() {
   };
 
   return (
-    <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-3xl bg-card border border-border shadow-2xl p-8">
+    <div className="relative flex aspect-square w-full max-w-md items-center justify-center overflow-hidden rounded-3xl bg-muted/10 border-none shadow-2xl p-4 sm:p-8">
       <AnimatePresence mode="wait">
         {renderLayout()}
       </AnimatePresence>

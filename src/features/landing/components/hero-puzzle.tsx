@@ -1,14 +1,17 @@
 "use client";
 
-import { motion } from "motion/react";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight, Play, Info } from "lucide-react";
 import { PuzzleHeroAnimation } from "./puzzle-hero-animation";
 import { fadeIn, fadeInUp } from "@/lib/animations";
+import { useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 
 export function HeroPuzzle() {
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
   const handleStartPuzzle = () => {
-    // Temporary placeholder for Sprint 5
-    alert("The Puzzle Experience is arriving in Sprint 5! Try the Photo Booth below in the meantime.");
+    setShowComingSoon(true);
+    setTimeout(() => setShowComingSoon(false), 5000);
   };
 
   return (
@@ -18,7 +21,7 @@ export function HeroPuzzle() {
       <div className="pointer-events-none absolute inset-0 bg-radial-fade" />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
-      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-2 lg:gap-8 lg:px-12 items-center">
+      <div className="relative z-10 mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-2 lg:gap-16 lg:px-12 items-center">
         
         {/* Left: Copy & CTAs */}
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
@@ -76,6 +79,21 @@ export function HeroPuzzle() {
               Watch Demo
             </button>
           </motion.div>
+
+          {/* Coming Soon Indicator */}
+          <AnimatePresence>
+            {showComingSoon && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mt-6 inline-flex items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-4 py-3 text-sm font-medium text-primary shadow-sm"
+              >
+                <Info className="h-4 w-4" />
+                The Puzzle Experience is arriving in Sprint 5! Try the Photo Booth below.
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Right: Animation */}
@@ -85,6 +103,7 @@ export function HeroPuzzle() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         >
+          {/* TODO: Replace PuzzleHeroAnimation with the real Puzzle Experience preview in Sprint 5 */}
           <PuzzleHeroAnimation />
         </motion.div>
 
