@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { usePuzzleStore } from "@/store/puzzle-store";
 import { useRouter } from "next/navigation";
+import { InteractionSurface } from "@/features/hand-tracking/components/interaction-surface";
 
 export function PuzzleCompletedOverlay() {
   const { moveCount, difficulty, elapsedTime, restartPuzzle, reset } = usePuzzleStore();
@@ -54,26 +55,23 @@ export function PuzzleCompletedOverlay() {
         </div>
         
         <div className="w-full flex flex-col gap-3">
-          <button 
-            onClick={restartPuzzle}
-            className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors"
-          >
-            Play Again
-          </button>
+          <InteractionSurface onClick={restartPuzzle} magnetic className="w-full rounded-xl">
+            <button className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors">
+              Play Again
+            </button>
+          </InteractionSurface>
           
-          <button 
-            onClick={handleNewPhoto}
-            className="w-full py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors"
-          >
-            New Photo
-          </button>
+          <InteractionSurface onClick={handleNewPhoto} magnetic className="w-full rounded-xl">
+            <button className="w-full py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors">
+              New Photo
+            </button>
+          </InteractionSurface>
           
-          <button 
-            onClick={handleHome}
-            className="w-full py-3 bg-transparent text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white transition-colors"
-          >
-            Back to Home
-          </button>
+          <InteractionSurface onClick={handleHome} magnetic className="w-full rounded-xl">
+            <button className="w-full py-3 bg-transparent text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white transition-colors">
+              Back to Home
+            </button>
+          </InteractionSurface>
         </div>
       </motion.div>
     </motion.div>

@@ -1,6 +1,7 @@
 import { Camera } from "lucide-react";
 import { motion } from "motion/react";
 import { fadeInUp } from "@/lib/animations";
+import { InteractionSurface } from "@/features/hand-tracking/components/interaction-surface";
 
 interface CaptureOverlayProps {
   onCapture: () => void;
@@ -19,16 +20,17 @@ export function CaptureOverlay({ onCapture }: CaptureOverlayProps) {
           Take a photo to begin
         </p>
 
-        <button
-          onClick={onCapture}
-          className="group relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-transparent transition-transform hover:scale-105 active:scale-95"
-          aria-label="Take Photo"
-        >
-          {/* Inner Circle */}
-          <div className="absolute flex h-16 w-16 items-center justify-center rounded-full bg-white transition-transform group-hover:scale-95 group-active:scale-90">
-            <Camera className="h-6 w-6 text-black/80" />
-          </div>
-        </button>
+        <InteractionSurface onClick={onCapture} magnetic className="rounded-full">
+          <button
+            className="group relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/20 bg-transparent transition-transform hover:scale-105 active:scale-95"
+            aria-label="Take Photo"
+          >
+            {/* Inner Circle */}
+            <div className="absolute flex h-16 w-16 items-center justify-center rounded-full bg-white transition-transform group-hover:scale-95 group-active:scale-90">
+              <Camera className="h-6 w-6 text-black/80" />
+            </div>
+          </button>
+        </InteractionSurface>
       </motion.div>
     </div>
   );

@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useGlobalPointer } from "../providers/global-pointer-provider";
 import { useHandTracking } from "../providers/hand-tracking-provider";
 import { useHandTrackingDiagnostics } from "../store/hand-tracking-diagnostics-store";
 import { FpsTracker } from "../services/fps-tracker";
-import { interactionAssist } from "../services/interaction-assist";
 
 interface TrailPoint {
   id: number;
@@ -15,7 +15,8 @@ interface TrailPoint {
 }
 
 export function PointerOverlay() {
-  const { handState, gestureState, isReady } = useHandTracking();
+  const { handState } = useHandTracking();
+  const { pointerState } = useGlobalPointer();
   const [trail, setTrail] = useState<TrailPoint[]>([]);
   const [ripple, setRipple] = useState<{ id: number, x: number, y: number } | null>(null);
 
@@ -45,56 +46,54 @@ export function PointerOverlay() {
     };
   }, []);
 
+  // Manage global cursor hiding
+  useEffect(() => {
+    if (pointerState.source === "hand") {
+      document.body.style.cursor = "none";
+    } else {
+      document.body.style.cursor = "auto";
+    }
+  }, [pointerState.source]);
+
   // Keep a motion trail
   useEffect(() => {
-    if (handState.detected) {
+    if (pointerState.phase !== "hidden" && pointerState.source === "hand") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setTrail((prev) => {
         const now = Date.now();
-        // Remove points older than 120ms
         const filtered = prev.filter((p) => now - p.timestamp < 120);
-        // Add new point
         return [
           ...filtered,
-          {
-            id: now, // using timestamp as id is usually fine for 60fps
-            x: handState.pointer.x,
-            y: handState.pointer.y,
-            timestamp: now,
-          },
+          { id: now, x: pointerState.x, y: pointerState.y, timestamp: now },
         ];
       });
     } else {
       setTrail([]);
     }
-  }, [handState]);
+  }, [pointerState.x, pointerState.y, pointerState.phase, pointerState.source]);
 
+  const wasPressed = useRef(false);
   // Handle Drop Ripple
   useEffect(() => {
-    if (gestureState.phase === "pinch-end") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (pointerState.phase === "pressed" || pointerState.phase === "dragging") {
+      wasPressed.current = true;
+    } else if (wasPressed.current && (pointerState.phase === "idle" || pointerState.phase === "hover")) {
+      wasPressed.current = false;
       setRipple({
         id: Date.now(),
-        x: handState.pointer.x,
-        y: handState.pointer.y
+        x: pointerState.x,
+        y: pointerState.y
       });
     }
-  }, [gestureState.phase, handState.pointer.x, handState.pointer.y]);
+  }, [pointerState.phase, pointerState.x, pointerState.y]);
 
-  if (!isReady) return null;
+  if (pointerState.phase === "hidden") return null;
 
-  let displayX = handState.pointer.x;
-  let displayY = handState.pointer.y;
+  const displayX = pointerState.x;
+  const displayY = pointerState.y;
 
-  // Use InteractionAssistService to get the exact magnetic position matching the PuzzleEngine
-  if (gestureState.hoveredPieceId) {
-    const magneticPos = interactionAssist.applyMagneticAttraction(displayX, displayY, gestureState.hoveredPieceId);
-    displayX = magneticPos.x;
-    displayY = magneticPos.y;
-  }
-
-  const cursorState = (gestureState.phase === "pinching" || gestureState.phase === "pinch-start") ? "grab" :
-                      gestureState.phase === "hover" ? "hover" : "idle";
+  const cursorState = pointerState.phase === "pressed" || pointerState.phase === "dragging" ? "grab" :
+                      pointerState.phase === "hover" ? "hover" : "idle";
   
   let cursorClasses = "rounded-full bg-white transition-all duration-300 ease-out ";
   let blurClasses = "rounded-full bg-cyan-400/50 blur-md absolute inset-0 transition-all duration-300 ease-out ";
@@ -134,34 +133,8 @@ export function PointerOverlay() {
               );
             })}
 
-            {/* Locked Target Connection Line (AR Style) */}
-            <AnimatePresence>
-              {cursorState === "grab" && gestureState.hoveredPieceId && (
-                <motion.svg 
-                  className="absolute inset-0 pointer-events-none z-40 overflow-visible"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  <motion.line
-                    x1={`${handState.pointer.x * 100}%`}
-                    y1={`${handState.pointer.y * 100}%`}
-                    x2={`${displayX * 100}%`}
-                    y2={`${displayY * 100}%`}
-                    stroke="rgba(34,211,238,0.5)"
-                    strokeWidth="2"
-                    strokeDasharray="4 4"
-                    className="animate-[dash_1s_linear_infinite]"
-                  />
-                  <motion.circle 
-                    cx={`${displayX * 100}%`} 
-                    cy={`${displayY * 100}%`} 
-                    r="6" 
-                    fill="rgba(34,211,238,0.8)" 
-                  />
-                </motion.svg>
-              )}
-            </AnimatePresence>
+            {/* Pointer overlay no longer renders the connection line here. 
+                The puzzle pieces will handle their own locked connections or we can rely on standard dragging visual. */}
 
             {/* Main Pointer */}
             <div

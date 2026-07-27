@@ -57,6 +57,7 @@ interface PuzzleState {
   setGenerationState: (state: LoadingState) => void;
   generatePuzzle: (sourceImage: CapturedPhoto) => void;
   movePieceToSlot: (pieceId: string, targetSlotIndex: number) => void;
+  handlePieceSelection: (pieceId: string) => void;
   restartPuzzle: () => void;
   completePuzzle: () => void;
   reset: () => void;
@@ -82,9 +83,9 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
 
   setPieces: (pieces) => set({ pieces }),
   setSelectedPiece: (id) => set({ selectedPieceId: id }),
-  setDifficulty: (difficulty) => set({ difficulty }),
-  setScene: (scene) => set({ scene }),
-  setSourceImage: (photo) => set({ sourceImage: photo }),
+  setDifficulty: (difficulty) => set({ difficulty, selectedPieceId: null }),
+  setScene: (scene) => set({ scene, selectedPieceId: null }),
+  setSourceImage: (photo) => set({ sourceImage: photo, selectedPieceId: null }),
   setComplete: (complete) => set({ isComplete: complete }),
   incrementMoves: () => set((state) => ({ moveCount: state.moveCount + 1 })),
   setElapsedTime: (time) => set({ elapsedTime: time }),
@@ -106,6 +107,7 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
         scene: "gameplay",
         isTimerRunning: true,
         elapsedTime: 0,
+        selectedPieceId: null,
       });
     } catch (err) {
       console.error("Failed to generate puzzle:", err);
@@ -150,11 +152,32 @@ export const usePuzzleStore = create<PuzzleState>((set, get) => ({
     }
   },
 
+  handlePieceSelection: (pieceId: string) => {
+    const state = get();
+    const targetPiece = state.pieces.find(p => p.id === pieceId);
+    
+    // Ignore locked pieces
+    if (!targetPiece || targetPiece.isLocked) return;
+    
+    if (state.selectedPieceId === null) {
+      // Select
+      set({ selectedPieceId: pieceId });
+    } else if (state.selectedPieceId === pieceId) {
+      // Cancel self-selection
+      set({ selectedPieceId: null });
+    } else {
+      // Swap!
+      get().movePieceToSlot(state.selectedPieceId, targetPiece.currentSlotIndex);
+      set({ selectedPieceId: null });
+    }
+  },
+
   completePuzzle: () => {
     set({ 
       isComplete: true, 
       completedAt: Date.now(),
-      isTimerRunning: false 
+      isTimerRunning: false,
+      selectedPieceId: null,
     });
     
     // Victory presentation delay

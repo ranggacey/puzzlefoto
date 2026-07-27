@@ -12,6 +12,8 @@ interface PuzzlePieceProps {
   difficulty: PuzzleDifficulty;
   dragState: DragState;
   isHovered: boolean;
+  isSelected: boolean;
+  isSwapTarget: boolean;
   onPointerDown: (pieceId: string, clientX: number, clientY: number) => void;
 }
 
@@ -21,6 +23,8 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
   difficulty,
   dragState,
   isHovered,
+  isSelected,
+  isSwapTarget,
   onPointerDown,
 }: PuzzlePieceProps) {
   const { rows, columns } = DIFFICULTY_PRESETS[difficulty];
@@ -48,29 +52,57 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       scale: 1,
       zIndex: 10,
       filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
+      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.2)",
     },
     hover: {
       opacity: 0.9,
       scale: 1.02,
       zIndex: 20,
       filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.4))",
+      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.4)",
     },
     active: {
       opacity: 1,
       scale: 1.05,
       zIndex: 50,
       filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.5))",
+      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.4)",
+    },
+    selected: {
+      opacity: 1,
+      scale: 1.05,
+      zIndex: 50,
+      filter: "drop-shadow(0 12px 24px rgba(34, 197, 94, 0.5))",
+      boxShadow: "inset 0 0 0 2px rgba(34, 197, 94, 0.8)",
+    },
+    swapTarget: {
+      opacity: 0.9,
+      scale: 1.02,
+      zIndex: 20,
+      filter: "drop-shadow(0 8px 12px rgba(59, 130, 246, 0.5))",
+      boxShadow: "inset 0 0 0 2px rgba(59, 130, 246, 0.8)",
     },
     locked: {
       opacity: 1,
       scale: 1,
       zIndex: 1,
       filter: "drop-shadow(0 0 12px rgba(255,255,255,0.3)) drop-shadow(0 0 4px rgba(255,255,255,0.5))",
+      boxShadow: "inset 0 0 0 0px rgba(255, 255, 255, 0)",
     },
   };
 
   const isDragging = dragState.draggedPieceId === piece.id;
-  const currentState = piece.isLocked ? "locked" : isDragging ? "active" : isHovered ? "hover" : "idle";
+  const currentState = piece.isLocked 
+    ? "locked" 
+    : isDragging 
+      ? "active" 
+      : isSelected 
+        ? "selected" 
+        : isSwapTarget 
+          ? "swapTarget" 
+          : isHovered 
+            ? "hover" 
+            : "idle";
 
   return (
     <motion.div
@@ -95,7 +127,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
           onPointerDown(piece.id, e.clientX, e.clientY);
         }
       }}
-      className={`absolute overflow-hidden rounded-sm ${!piece.isLocked ? "border border-white/20 cursor-grab active:cursor-grabbing" : ""}`}
+      className={`absolute overflow-hidden rounded-sm ${!piece.isLocked ? "cursor-grab active:cursor-grabbing" : ""}`}
       style={{
         width: `${widthPercent}%`,
         height: `${heightPercent}%`,
@@ -107,6 +139,31 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
         backgroundRepeat: "no-repeat",
         touchAction: "none", // Prevent scrolling while dragging on mobile
       }}
-    />
+    >
+      {/* Interaction Anchor (Only for hand tracking / unlocked pieces) */}
+      {!piece.isLocked && (
+        <motion.div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+          initial={false}
+          animate={{
+            width: isSelected ? 16 : isHovered || isSwapTarget ? 12 : 8,
+            height: isSelected ? 16 : isHovered || isSwapTarget ? 12 : 8,
+            backgroundColor: isSelected 
+              ? "rgba(34, 197, 94, 1)" 
+              : isSwapTarget 
+                ? "rgba(59, 130, 246, 1)" 
+                : "rgba(255, 255, 255, 0.9)",
+            boxShadow: isSelected 
+              ? "0 0 12px rgba(34, 197, 94, 0.8)" 
+              : isSwapTarget
+                ? "0 0 12px rgba(59, 130, 246, 0.8)"
+                : isHovered 
+                  ? "0 0 8px rgba(255, 255, 255, 0.8)" 
+                  : "0 0 4px rgba(0, 0, 0, 0.5)",
+          }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        />
+      )}
+    </motion.div>
   );
 });

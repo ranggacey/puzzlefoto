@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { PuzzleDifficulty, DIFFICULTY_PRESETS } from "../constants/puzzle-difficulty";
 import { useState } from "react";
 import { RotateCcw, Play } from "lucide-react";
+import { InteractionSurface } from "@/features/hand-tracking/components/interaction-surface";
 
 interface DifficultySelectionOverlayProps {
   onContinue: (difficulty: PuzzleDifficulty) => void;
@@ -27,38 +28,42 @@ export function DifficultySelectionOverlay({
 
         <div className="space-y-3 mb-8">
           {(Object.keys(DIFFICULTY_PRESETS) as PuzzleDifficulty[]).map((diff) => (
-            <button
-              key={diff}
-              onClick={() => setSelected(diff)}
-              className={`flex w-full items-center justify-between rounded-xl px-4 py-3 transition-all ${
-                selected === diff
-                  ? "bg-white text-black font-medium"
-                  : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
+            <InteractionSurface 
+              key={diff} 
+              onClick={() => setSelected(diff)} 
+              magnetic 
+              className="w-full rounded-xl"
             >
-              <span className="capitalize">{diff}</span>
-              <span className="text-sm opacity-60">
-                {DIFFICULTY_PRESETS[diff].label}
-              </span>
-            </button>
+              <button
+                className={`flex w-full items-center justify-between rounded-xl px-4 py-3 transition-all ${
+                  selected === diff
+                    ? "bg-white text-black font-medium"
+                    : "bg-white/5 text-white/70 hover:bg-white/10 hover:text-white"
+                }`}
+              >
+                <span className="capitalize">{diff}</span>
+                <span className="text-sm opacity-60">
+                  {DIFFICULTY_PRESETS[diff].label}
+                </span>
+              </button>
+            </InteractionSurface>
           ))}
         </div>
 
         <div className="flex gap-3">
-          <button
-            onClick={onRetake}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 font-medium text-white transition-colors hover:bg-white/20 active:scale-95"
-          >
-            <RotateCcw className="h-5 w-5" />
-            Retake
-          </button>
-          <button
-            onClick={() => onContinue(selected)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95"
-          >
-            <Play className="h-5 w-5 fill-current" />
-            Start
-          </button>
+          <InteractionSurface onClick={onRetake} magnetic className="flex-1 rounded-xl">
+            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-3 font-medium text-white transition-colors hover:bg-white/20 active:scale-95">
+              <RotateCcw className="h-5 w-5" />
+              Retake
+            </button>
+          </InteractionSurface>
+          
+          <InteractionSurface onClick={() => onContinue(selected)} magnetic className="flex-1 rounded-xl">
+            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-95">
+              <Play className="h-5 w-5 fill-current" />
+              Start
+            </button>
+          </InteractionSurface>
         </div>
       </motion.div>
     </div>

@@ -6,8 +6,8 @@ import { PuzzlePiece } from "./puzzle-piece";
 import { usePuzzleStore } from "@/store/puzzle-store";
 import { motion } from "motion/react";
 import { useUnifiedDrag } from "../hooks/use-unified-drag";
-import { useHandTracking } from "@/features/hand-tracking/providers/hand-tracking-provider";
 import { interactionAssist } from "@/features/hand-tracking/services/interaction-assist";
+import { useGlobalPointer } from "@/features/hand-tracking/providers/global-pointer-provider";
 
 interface PuzzleBoardProps {
   pieces: PuzzlePieceType[];
@@ -19,7 +19,22 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
   const boardRef = React.useRef<HTMLDivElement>(null);
   const movePieceToSlot = usePuzzleStore((state) => state.movePieceToSlot);
   const isComplete = usePuzzleStore((state) => state.isComplete);
-  const { registerGestureCallbacks, gestureState } = useHandTracking();
+  const selectedPieceId = usePuzzleStore((state) => state.selectedPieceId);
+  const handlePieceSelection = usePuzzleStore((state) => state.handlePieceSelection);
+  const { registerSurface, unregisterSurface, pointerState } = useGlobalPointer();
+  const pointerStateRef = React.useRef(pointerState);
+  
+  React.useEffect(() => {
+    pointerStateRef.current = pointerState;
+  }, [pointerState]);
+
+  // Compute hovered piece ID directly based on global pointer state
+  // But only if we are not dragging, and only if pointer is over the board (approx)
+  // Actually, interactionAssist handles it perfectly.
+  const hoveredPieceId = React.useMemo(() => {
+    if (isComplete || pointerState.phase === "hidden") return null;
+    return interactionAssist.hitTest(pointerState.x, pointerState.y);
+  }, [pointerState.x, pointerState.y, pointerState.phase, isComplete]);
 
   const handleDrop = React.useCallback(
     (pieceId: string, clientX: number, clientY: number) => {
@@ -52,22 +67,38 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
     [difficulty, movePieceToSlot]
   );
 
-  const { dragState, handlePointerDown, feedSyntheticEvent } = useUnifiedDrag({
+  const { dragState, handlePointerDown, forcePointerUp } = useUnifiedDrag({
     boardRef,
     onDrop: handleDrop,
   });
 
-  // Register with Hand Tracking
+  // Register with GlobalPointerProvider and InteractionAssist
   React.useEffect(() => {
     interactionAssist.updateContext(() => boardRef.current?.getBoundingClientRect() ?? null, pieces, difficulty);
     
-    registerGestureCallbacks(
-      (event) => feedSyntheticEvent(interactionAssist.processEvent(event)),
-      {
-        hitTest: (x, y) => interactionAssist.hitTest(x, y)
-      }
-    );
-  }, [registerGestureCallbacks, feedSyntheticEvent, difficulty, pieces]);
+    if (boardRef.current) {
+      registerSurface({
+        id: "puzzle-board",
+        element: boardRef.current,
+        priority: 4, // Priority 4 as per spec (lower than overlays)
+        magnetic: false,
+        callbacks: {
+           onPress: () => {
+             const state = pointerStateRef.current;
+             const hoveredId = interactionAssist.hitTest(state.x, state.y);
+             if (hoveredId) {
+               handlePieceSelection(hoveredId);
+             }
+           },
+           onRelease: () => {
+             forcePointerUp();
+           }
+        }
+      });
+    }
+
+    return () => unregisterSurface("puzzle-board");
+  }, [difficulty, pieces, registerSurface, unregisterSurface, handlePieceSelection, forcePointerUp]);
 
   if (!sourceImage) return null;
 
@@ -135,7 +166,9 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
             sourceImage={sourceImage}
             difficulty={difficulty}
             dragState={dragState}
-            isHovered={gestureState.hoveredPieceId === piece.id}
+            isHovered={hoveredPieceId === piece.id}
+            isSelected={selectedPieceId === piece.id}
+            isSwapTarget={selectedPieceId !== null && selectedPieceId !== piece.id && hoveredPieceId === piece.id}
             onPointerDown={handlePointerDown}
           />
         ))}

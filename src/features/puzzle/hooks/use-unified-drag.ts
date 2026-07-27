@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { NormalizedPointerEvent } from "@/features/hand-tracking/types/gesture-state";
+import { useGlobalPointer } from "@/features/hand-tracking/providers/global-pointer-provider";
 
 export interface DragState {
   isDragging: boolean;
@@ -17,6 +18,8 @@ interface UseUnifiedDragProps {
 }
 
 export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
+  const { pointerState } = useGlobalPointer();
+  
   const [dragState, setDragState] = useState<DragState>({
     isDragging: false,
     draggedPieceId: null,
@@ -31,6 +34,8 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
 
   // Generic handler for pointer down
   const handlePointerDown = useCallback((pieceId: string, clientX: number, clientY: number) => {
+    if (pointerState.source === "hand") return; // Hand tracking uses Select & Swap
+
     startPos.current = { x: clientX, y: clientY };
     setDragState({
       isDragging: true,
@@ -41,7 +46,7 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
       currentY: clientY,
       boardRect: boardRef.current ? boardRef.current.getBoundingClientRect() : null,
     });
-  }, [boardRef]);
+  }, [boardRef, pointerState.source]);
 
   // Generic handler for pointer move
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
@@ -75,10 +80,28 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
     });
   }, [onDrop]);
 
-  // Handle native mouse/touch events on the window to support dragging outside the board
+  // Automatically update drag position based on global pointer state
   useEffect(() => {
-    const onNativeMove = (e: PointerEvent) => handlePointerMove(e.clientX, e.clientY);
-    const onNativeUp = (e: PointerEvent) => handlePointerUp(e.clientX, e.clientY);
+    if (!dragState.isDragging || pointerState.source === "hand") return;
+    
+    const clientX = pointerState.x * window.innerWidth;
+    const clientY = pointerState.y * window.innerHeight;
+
+    if (pointerState.phase === "pressed" || pointerState.phase === "dragging" || pointerState.phase === "hover") { 
+       // We let pointerUp handle the release explicitly in hand tracking or mouse
+       handlePointerMove(clientX, clientY);
+    }
+  }, [pointerState.x, pointerState.y, pointerState.phase, dragState.isDragging, handlePointerMove, pointerState.source]);
+
+  // Handle native mouse/touch events on the window to support dragging outside the board
+  // We keep this for native touch/mouse interactions that might slip out of the window
+  useEffect(() => {
+    const onNativeMove = (e: PointerEvent) => {
+      if (pointerState.source !== "hand") handlePointerMove(e.clientX, e.clientY);
+    };
+    const onNativeUp = (e: PointerEvent) => {
+      if (pointerState.source !== "hand") handlePointerUp(e.clientX, e.clientY);
+    };
 
     window.addEventListener("pointermove", onNativeMove);
     window.addEventListener("pointerup", onNativeUp);
@@ -89,7 +112,7 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
       window.removeEventListener("pointerup", onNativeUp);
       window.removeEventListener("pointercancel", onNativeUp);
     };
-  }, [handlePointerMove, handlePointerUp]);
+  }, [handlePointerMove, handlePointerUp, pointerState.source]);
 
   return {
     dragState,
@@ -108,6 +131,13 @@ export function useUnifiedDrag({ boardRef, onDrop }: UseUnifiedDragProps) {
       } else if (event.type === "pointerUp") {
         handlePointerUp(clientX, clientY);
       }
-    }, [boardRef, handlePointerDown, handlePointerMove, handlePointerUp])
+    }, [boardRef, handlePointerDown, handlePointerMove, handlePointerUp]),
+    
+    // Direct call for the new interaction dispatcher
+    forcePointerUp: useCallback(() => {
+      const clientX = pointerState.x * window.innerWidth;
+      const clientY = pointerState.y * window.innerHeight;
+      handlePointerUp(clientX, clientY);
+    }, [handlePointerUp, pointerState.x, pointerState.y])
   };
 }

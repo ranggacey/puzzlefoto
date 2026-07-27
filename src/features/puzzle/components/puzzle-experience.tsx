@@ -11,6 +11,8 @@ import { PuzzleBoard } from "./puzzle-board";
 import { DifficultySelectionOverlay } from "./difficulty-selection-overlay";
 import { PuzzleCompletedOverlay } from "./puzzle-completed-overlay";
 import { PuzzleDifficulty } from "../constants/puzzle-difficulty";
+import { GlobalPointerProvider } from "@/features/hand-tracking/providers/global-pointer-provider";
+import { InteractionDispatcher } from "@/features/hand-tracking/services/interaction-dispatcher";
 import { HandTrackingProvider } from "@/features/hand-tracking/providers/hand-tracking-provider";
 import { PointerOverlay } from "@/features/hand-tracking/components/pointer-overlay";
 import { HandTrackingDebugOverlay } from "@/features/hand-tracking/components/debug-overlay";
@@ -77,9 +79,11 @@ export function PuzzleExperience() {
 
   return (
     <FullscreenLayout>
-      <HandTrackingProvider>
-        <PuzzleStage>
-          <LiveBackground />
+      <GlobalPointerProvider>
+        <HandTrackingProvider>
+          <InteractionDispatcher />
+          <PuzzleStage>
+            <LiveBackground />
         
         {(scene === "camera" || scene === "capturing") && (
           <CaptureOverlay onCapture={handleCapture} />
@@ -109,8 +113,9 @@ export function PuzzleExperience() {
         <React.Suspense fallback={null}>
           <HandTrackingDebugOverlay />
         </React.Suspense>
-        </PuzzleStage>
-      </HandTrackingProvider>
+          </PuzzleStage>
+        </HandTrackingProvider>
+      </GlobalPointerProvider>
     </FullscreenLayout>
   );
 }

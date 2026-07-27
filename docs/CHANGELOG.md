@@ -4,6 +4,22 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.8.1] - Gameplay Interaction Redesign (Select & Swap)
+- **New Feature**: Migrated Hand Tracking puzzle gameplay from drag-and-drop to a discrete "Select & Swap" interaction model, drastically improving usability and stability under webcam tracking.
+- **Enhancement**: Introduced explicit visual anchors (small center dots) on unlocked puzzle pieces that respond to hover, selection, and swap preview states.
+- **Enhancement**: Added a dedicated `handlePieceSelection` action in `PuzzleStore` to cleanly process selection state and execute swaps, isolating gameplay logic from the presentation layer.
+- **Enhancement**: Configured `useUnifiedDrag` to ignore Hand Tracking sources, ensuring that Mouse users can seamlessly continue using classic drag-and-drop mechanics.
+- **Enhancement**: Programmed `PuzzleStore` to automatically clear active selections upon any major state transition (e.g., retake photo, restart, or difficulty change).
+
+## [Sprint 5.8] - End-to-End Hand Interaction
+- **New Feature**: Re-architected Hand Tracking into a complete application-wide unified input system.
+- **New Feature**: Added `GlobalPointerProvider` to gracefully unify Mouse and Hand Tracking streams.
+- **New Feature**: Created `InteractionDispatcher` acting as an interaction router, invoking callbacks on explicitly registered UI elements rather than generating synthetic DOM events.
+- **Enhancement**: Introduced `<InteractionSurface>` to standard UI overlays (Difficulty Selection, Capture, Puzzle Completed) to add identical magnetic attraction, hover glow, and ripple feedback, regardless of physical device used.
+- **Enhancement**: Modified `useUnifiedDrag` to read from the unified `pointerState` rather than listening to window pointer events.
+- **Enhancement**: Refactored `PuzzleBoard` to act as a registered interaction surface.
+- **Enhancement**: Configured conditional rendering for `PointerOverlay` so that the custom AR pointer is completely hidden when the user interacts using a mouse.
+
 ## [Sprint 5.7] - AR-Style Interaction Layer
 - **New Feature**: Introduced `InteractionAssistService` to act as a dedicated AR interaction layer decoupling hand-tracking from Puzzle Engine.
 - **Enhancement**: Pointer position calculates from the midpoint between thumb and index finger during a pinch for natural grabbing.
