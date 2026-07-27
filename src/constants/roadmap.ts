@@ -20,7 +20,7 @@ export const roadmap: RoadmapPhase[] = [
   {
     phase: "Phase 2",
     title: "Photo Booth",
-    status: "in-progress",
+    status: "completed",
     items: [
       "Live camera preview and capture",
       "AI background removal",
@@ -32,13 +32,23 @@ export const roadmap: RoadmapPhase[] = [
   {
     phase: "Phase 3",
     title: "Puzzle Game",
-    status: "planned",
+    status: "completed",
     items: [
       "Canvas-based puzzle rendering",
       "MediaPipe hand tracking integration",
       "Pinch gesture puzzle interaction",
       "Progress tracking and completion effects",
       "Difficulty configuration",
+    ],
+  },
+  {
+    phase: "Phase 4",
+    title: "Export & Social",
+    status: "planned",
+    items: [
+      "Save finalized photo to device",
+      "Generate challenge links with puzzle configuration",
+      "Time tracking and score keeping leaderboards",
     ],
   },
 ];
