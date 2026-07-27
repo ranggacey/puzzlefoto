@@ -12,26 +12,8 @@ This document outlines the long-term Sprint planning and feature progression for
 - **Sprint 4**: Background Studio (AI Segmentation)
 - **Sprint 4.1**: Layout Architecture Standardization
 - **Sprint 4.5**: Landing Experience Redesign
-
----
-
-## Sprint 5: Puzzle Experience
-**Goal**: Build the core jigsaw puzzle generation and rendering engine.
-
-- **5.1 - Foundation**: Setup the Puzzle Engine state management and routing.
-- **5.2 - Puzzle Generation**: Convert finalized images into jigsaw pieces using Canvas.
-- **5.3 - Puzzle Rendering**: Render pieces on the Canvas board with initial mouse/touch interaction.
-- **5.4 - Gameplay Polish**: Snap-to-grid validation, completion states, and visual feedback.
-
----
-
-## Sprint 6: Hand Tracking
-**Goal**: Integrate MediaPipe Hand Tracking to allow touchless gameplay.
-
-- **6.1 - MediaPipe Integration**: Implement Hand Tracking module in a Web Worker or isolated process.
-- **6.2 - Gesture Recognition**: Detect pinch gestures and open hand gestures.
-- **6.3 - Virtual Pointer**: Map hand coordinates to the Canvas and simulate standard pointer events.
-- **6.4 - Interaction Polish**: Smooth out jitter, handle temporary tracking loss, and refine accessibility.
+- **Sprint 5**: Puzzle Experience & Hand Tracking
+- **Sprint 6**: Experience Polish & Motion Design
 
 ---
 
