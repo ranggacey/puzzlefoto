@@ -1,7 +1,6 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
-import { InteractionLogger } from "@/lib/debug/interaction-logger";
 
 export type InputSource = "mouse" | "touch" | "hand";
 export type PointerPhase = "hidden" | "idle" | "hover" | "pressed" | "dragging" | "disabled";
@@ -51,26 +50,6 @@ export function GlobalPointerProvider({ children }: { children: React.ReactNode 
   const setPointerStateWithLogging = useCallback((updater: React.SetStateAction<PointerState>) => {
     setPointerState((prev) => {
       const next = typeof updater === "function" ? updater(prev) : updater;
-      
-      if (
-        prev.phase !== next.phase ||
-        prev.source !== next.source ||
-        prev.hoveredSurfaceId !== next.hoveredSurfaceId
-      ) {
-        InteractionLogger.logState("GlobalPointerProvider", {
-          position: `(${next.x.toFixed(3)}, ${next.y.toFixed(3)})`,
-          phase: next.phase,
-          source: next.source,
-          hoveredSurfaceId: next.hoveredSurfaceId,
-        });
-
-        if (prev.hoveredSurfaceId !== next.hoveredSurfaceId) {
-          InteractionLogger.logDecision("GlobalPointerProvider", "Hover Changed", [
-            `✔ Previous: ${prev.hoveredSurfaceId || "None"}`,
-            `✔ Next: ${next.hoveredSurfaceId || "None"}`
-          ]);
-        }
-      }
       return next;
     });
   }, []);

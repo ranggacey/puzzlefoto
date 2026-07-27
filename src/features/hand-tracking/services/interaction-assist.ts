@@ -1,5 +1,5 @@
 import { DIFFICULTY_PRESETS, PuzzleDifficulty } from "@/features/puzzle/constants/puzzle-difficulty";
-import { InteractionLogger } from "@/lib/debug/interaction-logger";
+
 import { InteractionConfig } from "@/features/hand-tracking/constants/interaction-config";
 
 export interface InteractionAssistConfig {
@@ -50,24 +50,11 @@ export class InteractionAssistService {
 
   registerTarget(id: string, element: HTMLElement) {
     this.targets.set(id, element);
-    const rect = element.getBoundingClientRect();
-    InteractionLogger.logState("Registry", {
-      action: "Register",
-      id,
-      rect: `L:${Math.round(rect.left)} R:${Math.round(rect.right)} T:${Math.round(rect.top)} B:${Math.round(rect.bottom)}`,
-      connected: element.isConnected,
-      size: this.targets.size
-    });
   }
 
   unregisterTarget(id: string) {
     this.targets.delete(id);
     this.hoverState.delete(id);
-    InteractionLogger.logState("Registry", {
-      action: "Unregister",
-      id,
-      size: this.targets.size
-    });
   }
 
   updateContext(getBoardRect: () => DOMRect | null, difficulty: PuzzleDifficulty) {
@@ -82,18 +69,6 @@ export class InteractionAssistService {
 
     let candidateId: string | undefined = undefined;
     
-    // Log registry before hit test
-    const registryDump = Array.from(this.targets.entries()).map(([id, el]) => {
-      const rect = el.getBoundingClientRect();
-      return `${id} (connected:${el.isConnected}) [${Math.round(rect.width)}x${Math.round(rect.height)}]`;
-    });
-    
-    InteractionLogger.logState("HitTest", {
-      pointer: `(${Math.round(px)}, ${Math.round(py)})`,
-      registrySize: this.targets.size,
-      registry: registryDump
-    });
-
     const evaluation: HitTestEvaluation = {
       px,
       py,
@@ -113,7 +88,6 @@ export class InteractionAssistService {
       }
     }
 
-    const candidatesLog: string[] = [];
 
     for (const [id, element] of this.targets.entries()) {
       const rect = element.getBoundingClientRect();
@@ -132,15 +106,12 @@ export class InteractionAssistService {
       const inside = (px >= logicalRect.left && px <= logicalRect.right && py >= logicalRect.top && py <= logicalRect.bottom);
       
       evaluation.candidates.push({ pieceId: id, inside, rect, logicalRect });
-      candidatesLog.push(`${id} - inside=${inside}`);
       
       if (inside && !candidateId) {
         candidateId = id;
         // Do not break here because we want to evaluate all candidates for the debug overlay
       }
     }
-    
-    InteractionLogger.logDecision("HitTest", "Candidates Evaluated", candidatesLog);
 
     const now = performance.now();
     
@@ -169,27 +140,9 @@ export class InteractionAssistService {
     }
 
     if (bestCandidate) {
-      const state = this.hoverState.get(bestCandidate)!;
-      InteractionLogger.logDecision("HitTest", "Chosen Piece", [
-        `✔ ${bestCandidate}`,
-        `✔ Hover stability satisfied (>100ms)`,
-        ...(candidateId !== bestCandidate ? [`ℹ Using persistence (lost for ${Math.round(now - state.lastSeenTime)}ms)`] : [])
-      ]);
       evaluation.chosenId = bestCandidate;
       this.lastHitTest = evaluation;
       return bestCandidate;
-    } else {
-      if (candidateId) {
-        const state = this.hoverState.get(candidateId)!;
-        InteractionLogger.logDecision("HitTest", "Piece Candidate Ignored", [
-          `✖ ${candidateId}`,
-          `✖ Hover stability NOT satisfied (${Math.round(now - state.startTime)}ms < 100ms)`
-        ]);
-      } else {
-        InteractionLogger.logDecision("HitTest", "No Piece Chosen", [
-          `✖ Pointer outside all bounds`
-        ]);
-      }
     }
     
     this.lastHitTest = evaluation;

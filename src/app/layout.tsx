@@ -3,8 +3,7 @@ import { Inter, Geist_Mono } from "next/font/google";
 import { Navbar } from "@/components/layout/navbar";
 import { siteConfig } from "@/constants/site";
 import { ThemeProvider } from "@/components/providers/theme-provider";
-import { DebugOverlay } from "@/components/dev/debug-overlay";
-import { SpatialDebugOverlay } from "@/components/dev/spatial-debug-overlay";
+
 import { MotionConfig } from "motion/react";
 import { MotionInspector } from "@/components/dev/motion-inspector";
 import "./globals.css";
@@ -60,8 +59,7 @@ export default function RootLayout({
             {children}
             {process.env.NODE_ENV === "development" && (
               <>
-                <DebugOverlay />
-                <SpatialDebugOverlay />
+
                 <MotionInspector />
               </>
             )}
