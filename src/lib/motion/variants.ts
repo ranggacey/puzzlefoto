@@ -49,7 +49,7 @@ export const variants = {
     },
     hover: {
       opacity: motionTokens.opacity.hover,
-      scale: motionTokens.scale.hover,
+      scale: 0.97,
       zIndex: 20,
       filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.4))",
       boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.4)",
@@ -73,7 +73,7 @@ export const variants = {
     },
     swapTarget: {
       opacity: motionTokens.opacity.hover,
-      scale: motionTokens.scale.hover,
+      scale: 0.97,
       zIndex: 20,
       filter: "drop-shadow(0 8px 12px rgba(59, 130, 246, 0.5))",
       boxShadow: "inset 0 0 0 2px rgba(59, 130, 246, 0.8)",

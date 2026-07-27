@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import { useUnifiedDrag } from "../hooks/use-unified-drag";
 import { interactionAssist } from "@/features/hand-tracking/services/interaction-assist";
 import { useGlobalPointer } from "@/features/hand-tracking/providers/global-pointer-provider";
+import { InteractionLogger } from "@/lib/debug/interaction-logger";
 
 interface PuzzleBoardProps {
   pieces: PuzzlePieceType[];
@@ -36,9 +37,9 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
   // But only if we are not dragging, and only if pointer is over the board (approx)
   // Actually, interactionAssist handles it perfectly.
   const hoveredPieceId = React.useMemo(() => {
-    if (isComplete || pointerState.phase === "hidden") return null;
+    if (isComplete || pointerState.phase === "hidden" || pieces.length === 0) return null;
     return interactionAssist.hitTest(pointerState.x, pointerState.y);
-  }, [pointerState.x, pointerState.y, pointerState.phase, isComplete]);
+  }, [pointerState.x, pointerState.y, pointerState.phase, isComplete, pieces]);
 
   // 500ms Auto-Select Timer for Hand Tracking
   React.useEffect(() => {
@@ -61,6 +62,10 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
       if (progress < 1) {
         frameId = requestAnimationFrame(tick);
       } else {
+        InteractionLogger.logDecision("PuzzleBoard", "Auto-Select Executed", [
+          `✔ Timer completed (500ms)`,
+          `✔ Hovered Piece: ${hoveredPieceId}`
+        ]);
         handlePieceSelection(hoveredPieceId);
         setHoverProgress(0);
       }
@@ -88,6 +93,9 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
 
       // Fallback
       if (x < 0 || x > rect.width || y < 0 || y > rect.height) {
+        InteractionLogger.logDecision("PuzzleBoard", "Drop Cancelled", [
+          `✖ Pointer outside board bounds`
+        ]);
         return;
       }
 
@@ -120,18 +128,53 @@ export function PuzzleBoard({ pieces, sourceImage, difficulty }: PuzzleBoardProp
         priority: 4, // Priority 4 as per spec (lower than overlays)
         magnetic: false,
         callbacks: {
-           onPress: () => {
+           onPress: (x?: number, y?: number) => {
              const state = pointerStateRef.current;
              const currentSelectedId = selectedPieceIdRef.current;
-             const hoveredId = interactionAssist.hitTest(state.x, state.y);
-             if (hoveredId) {
+             
+             // Use exact pointer coordinates at the moment of pinch if provided (H1 Fix)
+             const pointerX = x ?? state.x;
+             const pointerY = y ?? state.y;
+             
+             const hitTestHoveredId = interactionAssist.hitTest(pointerX, pointerY);
+
+             InteractionLogger.logState("PuzzleBoard.onPress", {
+               selectedPieceId: currentSelectedId,
+               hoveredPieceId: hitTestHoveredId,
+               pointer: `(${pointerX.toFixed(3)}, ${pointerY.toFixed(3)})`,
+               interactionMode: state.source
+             });
+
+             if (hitTestHoveredId) {
                if (state.source === "hand" && currentSelectedId === null) {
+                 InteractionLogger.logDecision("PuzzleBoard", "Decision: IGNORE", [
+                   `✖ Hand tracking uses auto-hover for initial selection`
+                 ]);
                  return; // Hand tracking uses auto-hover for initial selection
                }
-               handlePieceSelection(hoveredId);
+               
+               if (currentSelectedId !== null && currentSelectedId !== hitTestHoveredId) {
+                 InteractionLogger.logDecision("PuzzleBoard", "Decision: SWAP", [
+                   `✔ Chosen piece: ${hitTestHoveredId}`,
+                   `✔ Source: ${state.source}`
+                 ]);
+               } else {
+                 InteractionLogger.logDecision("PuzzleBoard", "Decision: SELECT/CANCEL", [
+                   `✔ Chosen piece: ${hitTestHoveredId}`,
+                   `✔ Source: ${state.source}`
+                 ]);
+               }
+               handlePieceSelection(hitTestHoveredId);
+             } else {
+               InteractionLogger.logDecision("PuzzleBoard", "Decision: IGNORE", [
+                 `✖ No hovered piece at pointer location`
+               ]);
              }
            },
            onRelease: () => {
+             InteractionLogger.logDecision("PuzzleBoard", "Release Executed", [
+               `✔ Forcing pointer up`
+             ]);
              forcePointerUp();
            }
         }

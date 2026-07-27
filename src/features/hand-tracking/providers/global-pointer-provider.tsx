@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useCallback, useRef, useEffect } from "react";
+import { InteractionLogger } from "@/lib/debug/interaction-logger";
 
 export type InputSource = "mouse" | "touch" | "hand";
 export type PointerPhase = "hidden" | "idle" | "hover" | "pressed" | "dragging" | "disabled";
@@ -16,7 +17,7 @@ export interface PointerState {
 export interface InteractionSurfaceCallbacks {
   onHoverEnter?: () => void;
   onHoverLeave?: () => void;
-  onPress?: () => void;
+  onPress?: (x?: number, y?: number) => void;
   onRelease?: () => void;
 }
 
@@ -47,6 +48,33 @@ export function GlobalPointerProvider({ children }: { children: React.ReactNode 
     hoveredSurfaceId: null,
   });
 
+  const setPointerStateWithLogging = useCallback((updater: React.SetStateAction<PointerState>) => {
+    setPointerState((prev) => {
+      const next = typeof updater === "function" ? updater(prev) : updater;
+      
+      if (
+        prev.phase !== next.phase ||
+        prev.source !== next.source ||
+        prev.hoveredSurfaceId !== next.hoveredSurfaceId
+      ) {
+        InteractionLogger.logState("GlobalPointerProvider", {
+          position: `(${next.x.toFixed(3)}, ${next.y.toFixed(3)})`,
+          phase: next.phase,
+          source: next.source,
+          hoveredSurfaceId: next.hoveredSurfaceId,
+        });
+
+        if (prev.hoveredSurfaceId !== next.hoveredSurfaceId) {
+          InteractionLogger.logDecision("GlobalPointerProvider", "Hover Changed", [
+            `✔ Previous: ${prev.hoveredSurfaceId || "None"}`,
+            `✔ Next: ${next.hoveredSurfaceId || "None"}`
+          ]);
+        }
+      }
+      return next;
+    });
+  }, []);
+
   const surfacesRef = useRef<Map<string, RegisteredSurface>>(new Map());
 
   const registerSurface = useCallback((surface: RegisteredSurface) => {
@@ -64,7 +92,7 @@ export function GlobalPointerProvider({ children }: { children: React.ReactNode 
   // Listen for native mouse movement to switch input source and update position
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setPointerState((prev) => {
+      setPointerStateWithLogging((prev) => {
         return {
           ...prev,
           x: e.clientX / window.innerWidth,
@@ -76,11 +104,11 @@ export function GlobalPointerProvider({ children }: { children: React.ReactNode 
     };
 
     const handleMouseDown = () => {
-      setPointerState((prev) => prev.source === "mouse" ? { ...prev, phase: "pressed" } : prev);
+      setPointerStateWithLogging((prev) => prev.source === "mouse" ? { ...prev, phase: "pressed" } : prev);
     };
 
     const handleMouseUp = () => {
-      setPointerState((prev) => prev.source === "mouse" ? { ...prev, phase: "hover" } : prev);
+      setPointerStateWithLogging((prev) => prev.source === "mouse" ? { ...prev, phase: "hover" } : prev);
     };
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -92,13 +120,13 @@ export function GlobalPointerProvider({ children }: { children: React.ReactNode 
       window.removeEventListener("mousedown", handleMouseDown);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, []);
+  }, [setPointerStateWithLogging]);
 
   return (
     <GlobalPointerContext.Provider
       value={{
         pointerState,
-        setPointerState,
+        setPointerState: setPointerStateWithLogging,
         registerSurface,
         unregisterSurface,
         getSurfaces,

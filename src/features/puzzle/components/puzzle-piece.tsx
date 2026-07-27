@@ -31,18 +31,12 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
   hoverProgress,
   onPointerDown,
 }: PuzzlePieceProps) {
-  const pieceRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (!piece.isLocked && pieceRef.current) {
-      interactionAssist.registerTarget(piece.id, pieceRef.current);
+  const setPieceRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (node && !piece.isLocked) {
+      interactionAssist.registerTarget(piece.id, node);
     } else {
       interactionAssist.unregisterTarget(piece.id);
     }
-    
-    return () => {
-      interactionAssist.unregisterTarget(piece.id);
-    };
   }, [piece.isLocked, piece.id]);
 
   const { rows, columns } = DIFFICULTY_PRESETS[difficulty];
@@ -78,7 +72,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
 
   return (
     <motion.div
-      ref={pieceRef}
+      ref={setPieceRef}
       layout
       variants={motionPresets.puzzle}
       initial={false}
@@ -102,6 +96,7 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
         layout: { type: "spring", stiffness: 300, damping: 30 }
       }}
       whileHover={!piece.isLocked && !isDragging ? "hover" : undefined}
+      data-piece-id={piece.id}
       onPointerDown={(e) => {
         if (!piece.isLocked) {
           e.preventDefault();

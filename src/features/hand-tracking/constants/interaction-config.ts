@@ -10,6 +10,8 @@ export const InteractionConfig = {
   magneticStrength: 0.75,
   magneticStrengthGrabbed: 0.85,
   
+  logicalHitboxScale: 0.9,
+  
   adaptiveSmoothing: {
     slow: 0.82,
     fast: 0.45,

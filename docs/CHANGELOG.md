@@ -11,6 +11,9 @@ All notable changes to the Vision Puzzle project will be documented in this file
 - **Enhancement**: Built a `stagger` sequence system for orchestrated rendering of lists and UI blocks.
 - **Enhancement**: Implemented application-wide `prefers-reduced-motion` support using a global `MotionConfig`, ensuring accessibility.
 
+## [Sprint 5.8.4] - Hover Persistence Refinement
+- **Bug Fix**: Implemented a 150ms dropout tolerance for piece hovering to prevent tracking jitter from constantly resetting the 500ms auto-select timer.
+
 ## [Sprint 5.8.3] - Hover-to-Select Interaction Refinement
 - **New Feature**: Introduced automatic selection via a 500ms stable hover, removing the need for a pinch gesture to select the first puzzle piece.
 - **Enhancement**: Added a sleek SVG radial progress indicator around puzzle piece anchors to communicate the 500ms auto-select countdown visually.
