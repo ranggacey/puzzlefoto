@@ -1,6 +1,6 @@
 import { Camera } from "lucide-react";
 import { motion } from "motion/react";
-import { fadeInUp } from "@/lib/animations";
+import { motionPresets } from "@/lib/motion";
 import { InteractionSurface } from "@/features/hand-tracking/components/interaction-surface";
 
 interface CaptureOverlayProps {
@@ -11,9 +11,10 @@ export function CaptureOverlay({ onCapture }: CaptureOverlayProps) {
   return (
     <div className="absolute inset-x-0 bottom-0 z-20 flex flex-col items-center justify-end pb-12 sm:pb-24">
       <motion.div
-        variants={fadeInUp}
+        variants={motionPresets.overlay}
         initial="hidden"
         animate="visible"
+        exit="exit"
         className="flex flex-col items-center gap-6"
       >
         <p className="text-sm font-medium text-white/80 drop-shadow-md">

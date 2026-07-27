@@ -4,6 +4,13 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 6.1] - Motion Design System & Micro Interactions
+- **New Feature**: Introduced a unified Motion Design System (`src/lib/motion/`) standardizing all animation durations, easings, springs, scales, and opacities.
+- **New Feature**: Added a development-only `MotionInspector` panel to visualize current motion state and debugging properties.
+- **Enhancement**: Abstracted raw framer-motion transitions into semantic, reusable presets (`motionPresets`) applied globally to buttons, pointer, puzzle pieces, and overlays.
+- **Enhancement**: Built a `stagger` sequence system for orchestrated rendering of lists and UI blocks.
+- **Enhancement**: Implemented application-wide `prefers-reduced-motion` support using a global `MotionConfig`, ensuring accessibility.
+
 ## [Sprint 5.8.3] - Hover-to-Select Interaction Refinement
 - **New Feature**: Introduced automatic selection via a 500ms stable hover, removing the need for a pinch gesture to select the first puzzle piece.
 - **Enhancement**: Added a sleek SVG radial progress indicator around puzzle piece anchors to communicate the 500ms auto-select countdown visually.

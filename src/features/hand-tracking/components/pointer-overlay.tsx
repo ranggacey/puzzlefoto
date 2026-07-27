@@ -6,6 +6,7 @@ import { useGlobalPointer } from "../providers/global-pointer-provider";
 import { useHandTracking } from "../providers/hand-tracking-provider";
 import { useHandTrackingDiagnostics } from "../store/hand-tracking-diagnostics-store";
 import { FpsTracker } from "../services/fps-tracker";
+import { motionPresets, motionTokens } from "@/lib/motion";
 
 interface TrailPoint {
   id: number;
@@ -94,23 +95,6 @@ export function PointerOverlay() {
 
   const cursorState = pointerState.phase === "pressed" || pointerState.phase === "dragging" ? "grab" :
                       pointerState.phase === "hover" ? "hover" : "idle";
-  
-  let cursorClasses = "rounded-full bg-white transition-all duration-300 ease-out ";
-  let blurClasses = "rounded-full bg-cyan-400/50 blur-md absolute inset-0 transition-all duration-300 ease-out ";
-  
-  if (cursorState === "idle") {
-    cursorClasses += "shadow-[0_0_10px_rgba(255,255,255,0.4)]";
-    blurClasses += "opacity-50 scale-100";
-  } else if (cursorState === "hover") {
-    cursorClasses += "bg-white border-[3px] border-cyan-200 shadow-[0_0_20px_rgba(34,211,238,0.8)] scale-110";
-    blurClasses += "scale-150 bg-cyan-400/80 animate-pulse";
-  } else if (cursorState === "grab") {
-    cursorClasses += "bg-cyan-300 shadow-[0_0_30px_rgba(34,211,238,1)] scale-125";
-    blurClasses += "scale-[1.7] bg-cyan-300/90";
-  }
-
-  const currentSize = cursorState === "idle" ? 24 :
-                      cursorState === "hover" ? 32 : 40;
 
   return (
     <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden">
@@ -145,16 +129,26 @@ export function PointerOverlay() {
               }}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.5, x: "-50%", y: "-50%" }}
-                animate={{ opacity: 1, scale: 1, x: "-50%", y: "-50%" }}
-                exit={{ opacity: 0, scale: 0.5, x: "-50%", y: "-50%" }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
-                className="flex items-center justify-center relative"
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                variants={motionPresets.overlay}
+                className="flex items-center justify-center relative -translate-x-1/2 -translate-y-1/2"
               >
-                <div className={blurClasses} />
-                <div 
-                  className={cursorClasses} 
-                  style={{ width: currentSize, height: currentSize }}
+                <motion.div 
+                  className="rounded-full bg-cyan-400 absolute inset-0 blur-md"
+                  animate={{
+                     scale: cursorState === "hover" ? 1.5 : cursorState === "grab" ? 1.7 : 1,
+                     opacity: cursorState === "idle" ? 0.5 : 0.8
+                  }}
+                  transition={motionTokens.springs.pointer}
+                />
+                <motion.div 
+                  className="rounded-full bg-cyan-200 relative" 
+                  style={{ width: 24, height: 24 }} // Base size
+                  variants={motionPresets.pointer}
+                  initial="idle"
+                  animate={cursorState}
                 />
               </motion.div>
             </div>
@@ -167,7 +161,7 @@ export function PointerOverlay() {
                   initial={{ opacity: 1, scale: 0 }}
                   animate={{ opacity: 0, scale: 4 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  transition={{ duration: motionTokens.durations.slow, ease: motionTokens.easings.exit }}
                   className="absolute -ml-6 -mt-6 w-12 h-12 rounded-full border-2 border-white pointer-events-none"
                   style={{
                     left: `${ripple.x * 100}%`,

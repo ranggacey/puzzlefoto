@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { siteConfig } from "@/constants/site";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { MotionConfig } from "motion/react";
+import { MotionInspector } from "@/components/dev/motion-inspector";
 import "./globals.css";
 
 const inter = Inter({
@@ -55,6 +56,7 @@ export default function RootLayout({
           <MotionConfig reducedMotion="user">
             <Navbar />
             {children}
+            <MotionInspector />
           </MotionConfig>
         </ThemeProvider>
       </body>

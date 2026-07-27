@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
+import { motionPresets, stagger } from "@/lib/motion";
 import { usePuzzleStore } from "@/store/puzzle-store";
 import { useRouter } from "next/navigation";
 import { InteractionSurface } from "@/features/hand-tracking/components/interaction-surface";
@@ -27,52 +28,64 @@ export function PuzzleCompletedOverlay() {
 
   return (
     <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
+      variants={motionPresets.overlay}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4"
     >
       <motion.div 
-        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, type: "spring", stiffness: 300, damping: 25 }}
+        variants={stagger.medium}
         className="rounded-3xl bg-black/80 p-8 w-full max-w-sm text-center border border-white/20 shadow-2xl flex flex-col items-center"
       >
-        <h2 className="text-3xl font-bold text-white mb-6">Puzzle Complete!</h2>
+        <motion.h2 variants={stagger.item} className="text-3xl font-bold text-white mb-6">Puzzle Complete!</motion.h2>
         
-        <div className="w-full flex justify-between px-4 mb-3 text-white/80">
+        <motion.div variants={stagger.item} className="w-full flex justify-between px-4 mb-3 text-white/80">
           <span className="font-medium">Difficulty</span>
           <span className="text-white font-semibold capitalize">{difficulty}</span>
-        </div>
+        </motion.div>
         
-        <div className="w-full flex justify-between px-4 mb-3 text-white/80">
+        <motion.div variants={stagger.item} className="w-full flex justify-between px-4 mb-3 text-white/80">
           <span className="font-medium">Moves</span>
           <span className="text-white font-semibold">{moveCount}</span>
-        </div>
+        </motion.div>
         
-        <div className="w-full flex justify-between px-4 mb-8 text-white/80">
+        <motion.div variants={stagger.item} className="w-full flex justify-between px-4 mb-8 text-white/80">
           <span className="font-medium">Time</span>
           <span className="text-white font-semibold">{formattedTime}</span>
-        </div>
+        </motion.div>
         
-        <div className="w-full flex flex-col gap-3">
+        <motion.div variants={stagger.item} className="w-full flex flex-col gap-3">
           <InteractionSurface onClick={restartPuzzle} magnetic className="w-full rounded-xl">
-            <button className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors">
+            <motion.button 
+              variants={motionPresets.button}
+              initial="idle" whileHover="hover" whileTap="press"
+              className="w-full py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-colors"
+            >
               Play Again
-            </button>
+            </motion.button>
           </InteractionSurface>
           
           <InteractionSurface onClick={handleNewPhoto} magnetic className="w-full rounded-xl">
-            <button className="w-full py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors">
+            <motion.button 
+              variants={motionPresets.button}
+              initial="idle" whileHover="hover" whileTap="press"
+              className="w-full py-3 bg-white/10 text-white font-medium rounded-xl hover:bg-white/20 transition-colors"
+            >
               New Photo
-            </button>
+            </motion.button>
           </InteractionSurface>
           
           <InteractionSurface onClick={handleHome} magnetic className="w-full rounded-xl">
-            <button className="w-full py-3 bg-transparent text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white transition-colors">
+            <motion.button 
+              variants={motionPresets.button}
+              initial="idle" whileHover="hover" whileTap="press"
+              className="w-full py-3 bg-transparent text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white transition-colors"
+            >
               Back to Home
-            </button>
+            </motion.button>
           </InteractionSurface>
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );

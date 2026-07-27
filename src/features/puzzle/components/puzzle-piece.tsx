@@ -6,6 +6,7 @@ import { DIFFICULTY_PRESETS, PuzzleDifficulty } from "../constants/puzzle-diffic
 import type { DragState } from "../hooks/use-unified-drag";
 import { InteractionConfig } from "@/features/hand-tracking/constants/interaction-config";
 import { interactionAssist } from "@/features/hand-tracking/services/interaction-assist";
+import { motionPresets } from "@/lib/motion";
 
 interface PuzzlePieceProps {
   piece: PuzzlePieceType;
@@ -56,57 +57,11 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
   const leftPercent = currentCol * widthPercent;
   const topPercent = currentRow * heightPercent;
 
-  // Background position from original source crop
   const bgPosX = columns > 1 ? (piece.sourceCol / (columns - 1)) * 100 : 0;
   const bgPosY = rows > 1 ? (piece.sourceRow / (rows - 1)) * 100 : 0;
   
   const bgSizeX = columns * 100;
   const bgSizeY = rows * 100;
-
-  const pieceVariants = {
-    idle: {
-      opacity: 0.8,
-      scale: 1,
-      zIndex: 10,
-      filter: "drop-shadow(0 4px 6px rgba(0,0,0,0.3))",
-      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.2)",
-    },
-    hover: {
-      opacity: 0.9,
-      scale: 1.02,
-      zIndex: 20,
-      filter: "drop-shadow(0 8px 12px rgba(0,0,0,0.4))",
-      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.4)",
-    },
-    active: {
-      opacity: 1,
-      scale: 1.05,
-      zIndex: 50,
-      filter: "drop-shadow(0 12px 24px rgba(0,0,0,0.5))",
-      boxShadow: "inset 0 0 0 1px rgba(255, 255, 255, 0.4)",
-    },
-    selected: {
-      opacity: 1,
-      scale: 1.05,
-      zIndex: 50,
-      filter: "drop-shadow(0 12px 24px rgba(34, 197, 94, 0.5))",
-      boxShadow: "inset 0 0 0 2px rgba(34, 197, 94, 0.8)",
-    },
-    swapTarget: {
-      opacity: 0.9,
-      scale: 1.02,
-      zIndex: 20,
-      filter: "drop-shadow(0 8px 12px rgba(59, 130, 246, 0.5))",
-      boxShadow: "inset 0 0 0 2px rgba(59, 130, 246, 0.8)",
-    },
-    locked: {
-      opacity: 1,
-      scale: 1,
-      zIndex: 1,
-      filter: "drop-shadow(0 0 12px rgba(255,255,255,0.3)) drop-shadow(0 0 4px rgba(255,255,255,0.5))",
-      boxShadow: "inset 0 0 0 0px rgba(255, 255, 255, 0)",
-    },
-  };
 
   const isDragging = dragState.draggedPieceId === piece.id;
   const currentState = piece.isLocked 
@@ -125,10 +80,19 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
     <motion.div
       ref={pieceRef}
       layout
-      variants={pieceVariants}
+      variants={motionPresets.puzzle}
       initial={false}
-      animate={{
-        ...pieceVariants[currentState],
+      animate={currentState}
+      style={{
+        width: `${widthPercent}%`,
+        height: `${heightPercent}%`,
+        left: `${leftPercent}%`,
+        top: `${topPercent}%`,
+        backgroundImage: `url(${sourceImage.image})`,
+        backgroundSize: `${bgSizeX}% ${bgSizeY}%`,
+        backgroundPosition: `${bgPosX}% ${bgPosY}%`,
+        backgroundRepeat: "no-repeat",
+        touchAction: "none",
         x: isDragging ? dragState.dragDeltaX : 0,
         y: isDragging ? dragState.dragDeltaY + InteractionConfig.dragOffsetY : 0,
       }}
@@ -140,23 +104,11 @@ export const PuzzlePiece = React.memo(function PuzzlePiece({
       whileHover={!piece.isLocked && !isDragging ? "hover" : undefined}
       onPointerDown={(e) => {
         if (!piece.isLocked) {
-          // Prevent default touch actions (e.g. scrolling on mobile)
           e.preventDefault();
           onPointerDown(piece.id, e.clientX, e.clientY);
         }
       }}
       className={`absolute overflow-hidden rounded-sm ${!piece.isLocked ? "cursor-grab active:cursor-grabbing" : ""}`}
-      style={{
-        width: `${widthPercent}%`,
-        height: `${heightPercent}%`,
-        left: `${leftPercent}%`,
-        top: `${topPercent}%`,
-        backgroundImage: `url(${sourceImage.image})`,
-        backgroundSize: `${bgSizeX}% ${bgSizeY}%`,
-        backgroundPosition: `${bgPosX}% ${bgPosY}%`,
-        backgroundRepeat: "no-repeat",
-        touchAction: "none", // Prevent scrolling while dragging on mobile
-      }}
     >
       {/* Interaction Anchor (Only for hand tracking / unlocked pieces) */}
       {!piece.isLocked && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { motionTokens } from "@/lib/motion";
 import Image from "next/image";
 import { usePuzzleStore } from "@/store/puzzle-store";
 
@@ -22,10 +23,10 @@ export function FloatingPhoto() {
       }
       transition={
         scene === "freeze"
-          ? { type: "spring", stiffness: 300, damping: 20 }
+          ? motionTokens.springs.overlay
           : { 
-              scale: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-              y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+              scale: { duration: 6, repeat: Infinity, ease: motionTokens.easings.smooth },
+              y: { duration: 4, repeat: Infinity, ease: motionTokens.easings.smooth }
             }
       }
       className="relative aspect-[3/4] w-full max-w-sm overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20"
