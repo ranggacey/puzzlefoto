@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useHandTracking } from "@/features/hand-tracking/providers/hand-tracking-provider";
 import { useGlobalPointer, RegisteredSurface, PointerPhase, PointerState } from "../providers/global-pointer-provider";
-import { InteractionLogger } from "@/lib/debug/interaction-logger";
+
 
 export function InteractionDispatcher() {
   const { handState, gestureState } = useHandTracking();
@@ -104,16 +104,7 @@ export function InteractionDispatcher() {
         prevSurface?.callbacks.onHoverLeave?.();
       }
       if (hoveredSurfaceId && targetSurface) {
-        InteractionLogger.logDecision("InteractionDispatcher", "Surface Hovered", [
-          `✔ Surface ID: ${targetSurface.id}`,
-          `✔ Highest priority (${targetSurface.priority})`,
-          `✔ Pointer inside bounds`
-        ]);
         targetSurface.callbacks.onHoverEnter?.();
-      } else if (!hoveredSurfaceId) {
-        InteractionLogger.logDecision("InteractionDispatcher", "Hover Cleared", [
-          `✖ Pointer outside every bounding box`
-        ]);
       }
       activeSurfaceId.current = hoveredSurfaceId;
     }
@@ -123,25 +114,11 @@ export function InteractionDispatcher() {
     if (gestureState.phase === "pinch-start" && !isPinching.current) {
       isPinching.current = true;
       if (targetSurface) {
-        const hasOnPress = !!targetSurface.callbacks.onPress;
-        InteractionLogger.logDecision("InteractionDispatcher", "Surface Pressed", [
-          `✔ Surface ID: ${targetSurface.id}`,
-          `✔ Coordinates: (${x.toFixed(3)}, ${y.toFixed(3)})`,
-          `ℹ onPress exists: ${hasOnPress}`,
-          hasOnPress ? `ℹ calling onPress...` : `✖ onPress is undefined`
-        ]);
         targetSurface.callbacks.onPress?.(x, y);
-      } else {
-        InteractionLogger.logDecision("InteractionDispatcher", "Press Ignored", [
-          `✖ Pointer outside every interactive surface`
-        ]);
       }
     } else if (gestureState.phase === "pinch-end" && isPinching.current) {
       isPinching.current = false;
       if (targetSurface) {
-        InteractionLogger.logDecision("InteractionDispatcher", "Surface Released", [
-          `✔ Surface ID: ${targetSurface.id}`
-        ]);
         targetSurface.callbacks.onRelease?.();
       }
     }
