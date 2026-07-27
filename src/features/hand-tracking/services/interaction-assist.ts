@@ -1,127 +1,76 @@
-import { NormalizedPointerEvent } from "../types/gesture-state";
 import { DIFFICULTY_PRESETS, PuzzleDifficulty } from "@/features/puzzle/constants/puzzle-difficulty";
-import { PuzzlePiece } from "@/features/puzzle/types/puzzle-piece";
 
 export interface InteractionAssistConfig {
-  hoverRadius: number; // ~80px
   snapRadius: number; // ~40px
 }
 
 export class InteractionAssistService {
   private config: InteractionAssistConfig = {
-    hoverRadius: 80,
     snapRadius: 40,
   };
 
   private getBoardRect: () => DOMRect | null = () => null;
-  private pieces: PuzzlePiece[] = [];
   private difficulty: PuzzleDifficulty = "easy";
-  private capturedPieceId: string | null = null;
+  
+  // Generic target registry
+  private targets = new Map<string, HTMLElement>();
   
   // Hysteresis for hovering
-  private lastHoveredPieceId: string | null = null;
-  private hoverStartTime: number = 0;
+  private hoverState = new Map<string, number>();
 
-  updateContext(getBoardRect: () => DOMRect | null, pieces: PuzzlePiece[], difficulty: PuzzleDifficulty) {
+  registerTarget(id: string, element: HTMLElement) {
+    this.targets.set(id, element);
+  }
+
+  unregisterTarget(id: string) {
+    this.targets.delete(id);
+    this.hoverState.delete(id);
+  }
+
+  updateContext(getBoardRect: () => DOMRect | null, difficulty: PuzzleDifficulty) {
     this.getBoardRect = getBoardRect;
-    this.pieces = pieces;
     this.difficulty = difficulty;
   }
 
-  // Smart Hit Tester (Replaces old exact rectangle hit test)
+  // Smart Hit Tester using deterministic bounding boxes
   hitTest(x: number, y: number): string | undefined {
-    const boardRect = this.getBoardRect();
-    if (!boardRect) return undefined;
-    
-    const px = x * boardRect.width;
-    const py = y * boardRect.height;
-    
-    const { columns, rows } = DIFFICULTY_PRESETS[this.difficulty];
-    const slotWidth = boardRect.width / columns;
-    const slotHeight = boardRect.height / rows;
+    const px = x * window.innerWidth;
+    const py = y * window.innerHeight;
 
-    let closestPieceId: string | undefined = undefined;
-    let minDistance = Infinity;
+    let candidateId: string | undefined = undefined;
 
-    for (const piece of this.pieces) {
-      if (piece.isLocked) continue;
-
-      const col = piece.currentSlotIndex % columns;
-      const row = Math.floor(piece.currentSlotIndex / columns);
-      
-      const pieceCenterX = (col + 0.5) * slotWidth;
-      const pieceCenterY = (row + 0.5) * slotHeight;
-
-      const dx = px - pieceCenterX;
-      const dy = py - pieceCenterY;
-      const distanceToCenter = Math.sqrt(dx * dx + dy * dy);
-
-      if (distanceToCenter <= this.config.hoverRadius && distanceToCenter < minDistance) {
-        minDistance = distanceToCenter;
-        closestPieceId = piece.id;
+    for (const [id, element] of this.targets.entries()) {
+      const rect = element.getBoundingClientRect();
+      if (px >= rect.left && px <= rect.right && py >= rect.top && py <= rect.bottom) {
+        candidateId = id;
+        break;
       }
     }
 
-    const candidate = closestPieceId ?? null;
     const now = performance.now();
+    
+    // Clean up hover state for pieces no longer being hovered
+    for (const id of this.hoverState.keys()) {
+      if (id !== candidateId) {
+        this.hoverState.delete(id);
+      }
+    }
+
+    if (candidateId) {
+      if (!this.hoverState.has(candidateId)) {
+        this.hoverState.set(candidateId, now);
+      }
       
-    // Hysteresis: only switch hover if candidate is stable for a minimum duration
-    if (candidate !== this.lastHoveredPieceId) {
-      this.hoverStartTime = now;
-      this.lastHoveredPieceId = candidate;
+      const hoverStartTime = this.hoverState.get(candidateId)!;
+      if (now - hoverStartTime > 100) {
+        return candidateId;
+      }
     }
     
-    // Require 100ms stable hover to switch target
-    if (now - this.hoverStartTime > 100) {
-      return candidate ?? undefined;
-    } else {
-      // Fallback
-      return candidate ?? undefined;
-    }
+    return undefined;
   }
 
-  // Calculates progressive magnetic attraction based on distance
-  private getMagneticStrength(distance: number): number {
-    if (distance <= 15) return 1.0;
-    if (distance <= 30) return 0.8;
-    if (distance <= 60) return 0.5;
-    if (distance <= 100) return 0.2;
-    if (distance <= 150) return 0.05;
-    return 0.0;
-  }
 
-  // Applies magnetic attraction to pointer coordinates if hovering a piece
-  applyMagneticAttraction(x: number, y: number, targetPieceId: string | undefined): { x: number, y: number } {
-    const boardRect = this.getBoardRect();
-    if (!boardRect || !targetPieceId) return { x, y };
-    
-    const piece = this.pieces.find(p => p.id === targetPieceId);
-    if (!piece) return { x, y };
-
-    const { columns, rows } = DIFFICULTY_PRESETS[this.difficulty];
-    const slotWidth = boardRect.width / columns;
-    const slotHeight = boardRect.height / rows;
-    
-    const col = piece.currentSlotIndex % columns;
-    const row = Math.floor(piece.currentSlotIndex / columns);
-    
-    const pieceCenterX = (col + 0.5) * slotWidth;
-    const pieceCenterY = (row + 0.5) * slotHeight;
-    
-    const px = x * boardRect.width;
-    const py = y * boardRect.height;
-    
-    const dx = pieceCenterX - px;
-    const dy = pieceCenterY - py;
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    
-    const strength = this.getMagneticStrength(distance);
-    
-    return {
-      x: x + (dx / boardRect.width) * strength,
-      y: y + (dy / boardRect.height) * strength,
-    };
-  }
 
   // Evaluates adaptive drop snap target
   getAdaptiveDropTarget(x: number, y: number): number | null {
@@ -162,28 +111,7 @@ export class InteractionAssistService {
     return null;
   }
 
-  // Translates raw pointers into intent-based AR pointers
-  processEvent(event: NormalizedPointerEvent): NormalizedPointerEvent {
-    // 1. Maintain captured pointer
-    if (event.type === "pointerDown") {
-      this.capturedPieceId = event.hoveredPieceId || null;
-    } else if (event.type === "pointerUp") {
-      this.capturedPieceId = null;
-    }
 
-    // When captured, we lock the hover target
-    const targetPieceId = this.capturedPieceId || event.hoveredPieceId;
-    
-    // 2. Apply magnetic attraction
-    const magneticPos = this.applyMagneticAttraction(event.x, event.y, targetPieceId ?? undefined);
-
-    return {
-      type: event.type,
-      x: magneticPos.x,
-      y: magneticPos.y,
-      hoveredPieceId: targetPieceId ?? undefined,
-    };
-  }
 }
 
 export const interactionAssist = new InteractionAssistService();

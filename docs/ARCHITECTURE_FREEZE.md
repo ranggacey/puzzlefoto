@@ -181,6 +181,16 @@ Gesture Recognition must:
 
 Its sole purpose is to convert AI tracking into input events consumable by gameplay systems.
 
+### Hand Tracking Gameplay Interaction
+
+The Hand Tracking gameplay interaction model is strictly frozen. The approved and permanent interaction flow is:
+
+```
+Hover → Auto Select → Hover Target → Pinch → Swap
+```
+
+Future development may improve animation, visual effects, accessibility, calibration, or performance, but must never alter this deterministic interaction flow unless usability testing identifies a critical, breaking issue.
+
 ### Pointer Rendering
 
 The visual pointer is a presentation layer built on top of normalized hand tracking data.

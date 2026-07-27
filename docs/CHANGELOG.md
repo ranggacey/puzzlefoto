@@ -4,6 +4,16 @@ All notable changes to the Vision Puzzle project will be documented in this file
 
 ---
 
+## [Sprint 5.8.3] - Hover-to-Select Interaction Refinement
+- **New Feature**: Introduced automatic selection via a 500ms stable hover, removing the need for a pinch gesture to select the first puzzle piece.
+- **Enhancement**: Added a sleek SVG radial progress indicator around puzzle piece anchors to communicate the 500ms auto-select countdown visually.
+- **Enhancement**: Separated gameplay timing logic from presentation by managing the hover timer completely inside the `PuzzleBoard` interaction layer and passing progress down to `PuzzlePiece`.
+
+## [Sprint 5.8.2] - Deterministic Piece Selection
+- **Enhancement**: Migrated hit testing in `InteractionAssistService` from center-radius grid assumptions to precise, live DOM `getBoundingClientRect()` checks.
+- **Enhancement**: Replaced point-based hover hysteresis with piece-specific ID tracking, ensuring rapid transition stability between adjacent pieces.
+- **Maintenance**: Removed deprecated magnetic targeting and continuous drag targeting logic from the AI interaction layer.
+
 ## [Sprint 5.8.1] - Gameplay Interaction Redesign (Select & Swap)
 - **New Feature**: Migrated Hand Tracking puzzle gameplay from drag-and-drop to a discrete "Select & Swap" interaction model, drastically improving usability and stability under webcam tracking.
 - **Enhancement**: Introduced explicit visual anchors (small center dots) on unlocked puzzle pieces that respond to hover, selection, and swap preview states.
