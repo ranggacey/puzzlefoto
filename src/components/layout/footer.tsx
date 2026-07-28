@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Puzzle, Github, ExternalLink } from "lucide-react";
+import { Puzzle, Code2, ExternalLink } from "lucide-react";
 import { Container } from "./container";
 import { siteConfig, navigation } from "@/constants/site";
 
@@ -50,7 +50,7 @@ export function Footer() {
               aria-label="GitHub"
               target="_blank"
             >
-              <Github className="h-4 w-4" />
+              <Code2 className="h-4 w-4" />
             </a>
             <a
               href="https://www.puzzlefoto.my.id/"
