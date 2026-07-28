@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Aperture, Globe, ExternalLink } from "lucide-react";
+import { Puzzle, Github, ExternalLink } from "lucide-react";
 import { Container } from "./container";
 import { siteConfig, navigation } from "@/constants/site";
 
@@ -16,11 +16,12 @@ export function Footer() {
               href="/"
               className="flex items-center gap-2.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary">
-                <Aperture className="h-4 w-4 text-primary-foreground" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-gradient-to-br from-emerald-400 to-sky-500">
+                <Puzzle className="h-4 w-4 text-white" />
               </div>
-              <span className="text-sm font-semibold tracking-tight text-foreground">
-                {siteConfig.name}
+              <span className="text-sm font-semibold tracking-tight">
+                <span className="text-emerald-600 dark:text-emerald-400">Vision</span>
+                <span className="text-foreground">Puzzle</span>
               </span>
             </Link>
             <p className="text-xs text-muted-foreground">
@@ -34,7 +35,7 @@ export function Footer() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1"
+                className="text-sm text-muted-foreground transition-colors hover:text-emerald-600 dark:hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md px-1"
               >
                 {item.label}
               </Link>
@@ -44,16 +45,18 @@ export function Footer() {
           {/* Social Links */}
           <div className="flex items-center gap-3">
             <a
-              href="#"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              href="https://github.com/rizalkr/vision-puzzle"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="GitHub"
+              target="_blank"
             >
-              <Globe className="h-4 w-4" />
+              <Github className="h-4 w-4" />
             </a>
             <a
-              href="#"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Twitter"
+              href="https://www.puzzlefoto.my.id/"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sky-500/10 hover:text-sky-600 dark:hover:text-sky-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Website"
+              target="_blank"
             >
               <ExternalLink className="h-4 w-4" />
             </a>

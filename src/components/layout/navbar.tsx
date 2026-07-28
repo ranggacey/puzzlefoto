@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
-import { Menu, X, Aperture } from "lucide-react";
+import { Menu, X, Puzzle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Container } from "./container";
 import { navigation, siteConfig } from "@/constants/site";
@@ -77,11 +77,12 @@ export function Navbar() {
             href="/"
             className="flex items-center gap-2.5 transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Aperture className="h-4.5 w-4.5 text-primary-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-400 via-emerald-500 to-sky-500">
+              <Puzzle className="h-4.5 w-4.5 text-white" />
             </div>
-            <span className="text-base font-semibold tracking-tight text-foreground">
-              {siteConfig.name}
+            <span className="text-base font-semibold tracking-tight">
+              <span className="text-emerald-600 dark:text-emerald-400">Vision</span>
+              <span className="text-foreground">Puzzle</span>
             </span>
           </Link>
 
@@ -95,7 +96,7 @@ export function Navbar() {
                 className={cn(
                   "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   activeSection === item.href.substring(1)
-                    ? "bg-muted text-foreground"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                     : "text-muted-foreground"
                 )}
               >
@@ -109,7 +110,7 @@ export function Navbar() {
             <ThemeToggle />
             <Link
               href={navigation.cta.href}
-              className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex h-9 items-center rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 px-4 text-sm font-medium text-white shadow-glow transition-all hover:from-emerald-600 hover:to-emerald-700 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               {navigation.cta.label}
             </Link>
@@ -153,7 +154,7 @@ export function Navbar() {
                     className={cn(
                       "rounded-lg px-3.5 py-2.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       activeSection === item.href.substring(1)
-                        ? "bg-muted text-foreground"
+                        ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                         : "text-muted-foreground"
                     )}
                   >
@@ -164,7 +165,7 @@ export function Navbar() {
                   <Link
                     href={navigation.cta.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-primary text-sm font-medium text-primary-foreground transition-all hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-gradient-to-r from-emerald-500 to-emerald-600 text-sm font-medium text-white shadow-glow transition-all hover:from-emerald-600 hover:to-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     {navigation.cta.label}
                   </Link>

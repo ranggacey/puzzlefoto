@@ -32,7 +32,7 @@ export function PageHeader({
       )}
     >
       {badge && (
-        <span className="mb-4 inline-block rounded-full border border-border bg-muted px-4 py-1.5 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+        <span className="mb-4 inline-block rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold tracking-wide text-emerald-600 dark:text-emerald-400 uppercase">
           {badge}
         </span>
       )}

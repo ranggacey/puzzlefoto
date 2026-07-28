@@ -23,6 +23,7 @@ import {
   staggerItem,
   viewportOnce,
 } from "@/lib/animations";
+import { cn } from "@/lib/utils";
 
 
 
@@ -66,6 +67,7 @@ const steps = [
     title: "Capture",
     description:
       "Take a picture in the Photo Booth. Choose from multiple layout modes.",
+    accent: "emerald" as const,
   },
   {
     icon: Wand2,
@@ -73,6 +75,7 @@ const steps = [
     title: "Enhance",
     description:
       "Use AI to automatically remove the background and apply professional studio colors.",
+    accent: "sky" as const,
   },
   {
     icon: Hand,
@@ -80,6 +83,7 @@ const steps = [
     title: "Track",
     description:
       "Your webcam tracks your hand gestures in real-time without controllers.",
+    accent: "amber" as const,
   },
   {
     icon: Puzzle,
@@ -87,6 +91,7 @@ const steps = [
     title: "Play",
     description:
       "Solve the puzzle using pinch gestures. Assemble the pieces to reveal your memory.",
+    accent: "emerald" as const,
   },
 ];
 
@@ -108,18 +113,26 @@ function HowItWorksSection() {
       >
         {steps.map((step) => {
           const Icon = step.icon;
+          const accentColors = {
+            emerald: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-500/20",
+            sky: "bg-sky-500/10 text-sky-600 dark:text-sky-400 group-hover:bg-sky-500/20",
+            amber: "bg-amber-400/10 text-amber-600 dark:text-amber-400 group-hover:bg-amber-400/20",
+          };
           return (
             <motion.div
               key={step.step}
               variants={staggerItem}
-              className="relative text-center"
+              className="group relative text-center"
             >
               {/* Step number */}
-              <span className="mb-6 block text-6xl font-bold tracking-tighter text-muted/30">
+              <span className="mb-6 block text-6xl font-bold tracking-tighter text-muted/20 transition-colors duration-300 group-hover:text-emerald-500/20">
                 {step.step}
               </span>
 
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-muted text-primary">
+              <div className={cn(
+                "mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
+                accentColors[step.accent]
+              )}>
                 <Icon className="h-6 w-6" />
               </div>
 

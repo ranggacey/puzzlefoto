@@ -29,8 +29,8 @@ export function HeroPuzzle() {
             initial="hidden"
             animate="visible"
           >
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary backdrop-blur-sm">
-              <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400 backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               Vision Puzzle Experience
             </span>
           </motion.div>
@@ -42,7 +42,7 @@ export function HeroPuzzle() {
             className="mt-6 text-5xl font-black leading-[1.1] tracking-tight text-foreground sm:text-6xl md:text-7xl"
           >
             Turn Your Memories Into{" "}
-            <span className="text-gradient-blue block mt-2">Interactive Puzzles.</span>
+            <span className="text-gradient-primary block mt-2">Interactive Puzzles.</span>
           </motion.h1>
 
           <motion.p
@@ -65,14 +65,14 @@ export function HeroPuzzle() {
           >
             <button
               onClick={handleStartPuzzle}
-              className="group inline-flex h-14 items-center gap-2 rounded-xl bg-primary px-8 text-base font-bold text-primary-foreground shadow-glow transition-all hover:bg-primary/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group inline-flex h-14 items-center gap-2 rounded-xl bg-emerald-500 px-8 text-base font-bold text-white shadow-glow transition-all hover:bg-emerald-600 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Start Puzzle
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </button>
             <button
               onClick={() => alert("Demo video placeholder")}
-              className="group inline-flex h-14 items-center gap-2 rounded-xl border border-border bg-background/50 px-8 text-base font-semibold text-foreground backdrop-blur-sm transition-all hover:border-border/80 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group inline-flex h-14 items-center gap-2 rounded-xl border border-border bg-background/50 px-8 text-base font-semibold text-foreground backdrop-blur-sm transition-all hover:border-emerald-500/30 hover:bg-emerald-500/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Play className="h-4 w-4 fill-foreground transition-transform group-hover:scale-110" />
               Watch Demo
@@ -87,7 +87,6 @@ export function HeroPuzzle() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
         >
-          {/* TODO: Replace PuzzleHeroAnimation with the real Puzzle Experience preview in Sprint 5 */}
           <PuzzleHeroAnimation />
         </motion.div>
 

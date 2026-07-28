@@ -92,3 +92,18 @@ export const viewportOnce = {
   once: true,
   margin: "-80px" as const,
 };
+
+// ----- Feature card hover variant -----
+
+export const featureCard: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 25,
+    },
+  },
+};

@@ -14,10 +14,11 @@ export function TechBadge({ name, colorClasses }: TechBadgeProps) {
     <motion.span
       variants={staggerItem}
       className={cn(
-        "inline-flex items-center rounded-full border px-3.5 py-1.5 text-sm font-medium transition-all duration-200 hover:scale-105",
-        colorClasses,
+        "inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-medium backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg",
+        colorClasses
       )}
     >
+      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-50" />
       {name}
     </motion.span>
   );

@@ -51,4 +51,15 @@ export const roadmap: RoadmapPhase[] = [
       "Time tracking and score keeping leaderboards",
     ],
   },
+  {
+    phase: "Phase 5",
+    title: "UI Polish & Color Refresh",
+    status: "in-progress",
+    items: [
+      "Soft gradient palette (green × blue × yellow)",
+      "Refined hero sections with brand gradients",
+      "Enhanced micro-interactions and hover states",
+      "Improved accessibility and responsive design",
+    ],
+  },
 ];

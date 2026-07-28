@@ -9,7 +9,7 @@ import { Section } from "@/components/layout/section";
 
 export function HeroPhotoBooth() {
   return (
-    <Section id="photo-booth" className="relative flex w-full items-center justify-center overflow-hidden border-t border-border/50 bg-muted/30 py-24">
+    <Section id="photo-booth" className="relative flex w-full items-center justify-center overflow-hidden border-t border-border/50 bg-gradient-soft py-24">
       <div className="relative z-10 mx-auto grid max-w-7xl gap-12 px-6 lg:grid-cols-2 lg:gap-16 lg:px-12 items-center">
         
         {/* Left: Animation */}
@@ -31,7 +31,8 @@ export function HeroPhotoBooth() {
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-border/50 bg-background/80 px-4 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm">
+            <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-4 py-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
               Supporting Feature
             </span>
           </motion.div>
@@ -70,7 +71,7 @@ export function HeroPhotoBooth() {
           >
             <Link
               href="/photo-booth"
-              className="group inline-flex h-12 items-center gap-2 rounded-xl border border-border bg-background px-6 text-sm font-medium text-foreground shadow-sm transition-all hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group inline-flex h-12 items-center gap-2 rounded-xl border border-sky-500/30 bg-sky-500/10 px-6 text-sm font-medium text-sky-700 dark:text-sky-300 shadow-glow-blue transition-all hover:bg-sky-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               Open Photo Booth
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />

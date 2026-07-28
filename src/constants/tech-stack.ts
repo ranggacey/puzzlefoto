@@ -12,10 +12,10 @@ export type TechCategory =
   | "Language";
 
 export const techStack: TechItem[] = [
-  { name: "Next.js 15", category: "Framework" },
+  { name: "Next.js 16", category: "Framework" },
   { name: "React 19", category: "Framework" },
   { name: "TypeScript", category: "Language" },
-  { name: "Tailwind CSS", category: "Styling" },
+  { name: "Tailwind CSS v4", category: "Styling" },
   { name: "shadcn/ui", category: "Styling" },
   { name: "Motion", category: "Animation" },
   { name: "Zustand", category: "State" },
@@ -25,10 +25,10 @@ export const techStack: TechItem[] = [
 ];
 
 export const categoryColors: Record<TechCategory, string> = {
-  Framework: "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
-  Styling: "bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20",
-  Animation: "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/20",
+  Framework: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
+  Styling: "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20",
+  Animation: "bg-amber-400/10 text-amber-700 dark:text-amber-400 border-amber-400/20",
   State: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20",
-  "Computer Vision": "bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/20",
-  Language: "bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/20",
+  "Computer Vision": "bg-sky-500/10 text-sky-700 dark:text-sky-400 border-sky-500/20",
+  Language: "bg-amber-400/10 text-amber-700 dark:text-amber-400 border-amber-400/20",
 };
